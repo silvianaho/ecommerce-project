@@ -21,25 +21,71 @@ app.use(jsonParser);
 
 
 // 1. get all users
-app.get('/users', function (req, res) {
+app.get('/users', (req, res) => {
     users.allUsers((err, result) => {
         if (!err) {
             res.status(200).type("json").send(JSON.stringify(result));
         }
-        else{
+        else {
             res.status(500).type("json").send(JSON.stringify(err));
         }
     })
-})
+});
 
 // 2. create a new user
+app.post('/users', (req, res) => {
+    var data = {
+        username: req.body.username,
+        profile_pic_url: req.body.profile_pic_url,
+    }
 
+    users.addUser(data, (err, result) => {
+        if (!err) {
+            var output = {
+                "userID": result.insertId
+            }
+            res.status(201).type("json").send(JSON.stringify(output));
+        } else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
+});
 
 // 3. get user by id
-
+app.get('/users/:id', (req, res) => {
+    var id = req.params.id;
+    users.findUserbyID(id, (err, result) => {
+        if (!err) {
+            res.status(200).type("json").send(JSON.stringify(result));
+        }
+        else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
+});
 
 // 4. update user
+app.put('/users/:id', (req, res) => {
+    var data = {
+        username: req.body.username,
+        profile_pic_url: req.body.profile_pic_url,
+        userid: req.params.id,
+    };
 
+    users.updateUser(data, (err, result) => {
+        if (!err) {
+            res.status(204).type("json").send(JSON.stringify(result));
+        }
+        else {
+            if (err.errno === 1062) {
+                res.status(422).type("json").send(JSON.stringify(err));
+            } else {
+                res.status(500).type("json").send(JSON.stringify(err));
+            }
+        }
+    })
+
+});
 
 // 5. get all listings by user
 
