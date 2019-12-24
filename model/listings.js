@@ -4,9 +4,9 @@ var listingsDB = {
     // 5. get all listings by user
     getListingfromUser: (id, callback) => {
         var sqlstring = `
-        SELECT * FROM listings AS l, users as u
+        SELECT l.* FROM listings AS l, users as u
         WHERE u.userid = l.fk_poster_id AND
-            l.fk_poster_id = 1;`;
+            l.fk_poster_id = ?`;
 
         db.connection.query(sqlstring, id, (err, result) => {
             if (err) {
@@ -38,7 +38,7 @@ var listingsDB = {
 
     // 7. get listings by listing id
     findListingbyID: (id, callback) => {
-        var sqlstring = "SELECT * FROM listings WHERE listingid=?";
+        var sqlstring = "SELECT * FROM listings WHERE listingsid=?";
 
         db.connection.query(sqlstring, id, (err, result) => {
             if (err) {
@@ -56,14 +56,14 @@ var listingsDB = {
 
     // 8. add new listing
     addListing: (data, callback) => {
-        var sqlstring = "INSERT INTO listings (title, description, price, fk_poster_id, discount, category) VALUES (?, ?, ?, ?, ?, ?)";
+        var sqlstring = "INSERT INTO listings (title, description, price, fk_poster_id, category, discount) VALUES (?, ?, ?, ?, ?, ?)";
         var values = [
             data.title,
             data.description,
             data.price,
             data.fk_poster_id,
-            data.discount,
             data.category,
+            data.discount,
         ];
 
         db.connection.query(sqlstring, values, (err, result) => {
@@ -78,7 +78,7 @@ var listingsDB = {
 
     // 9. delete listing
     deleteListing: (id, callback) => {
-        var sqlstring = "DELETE FROM listings WHERE listingid=?";
+        var sqlstring = "DELETE FROM listings WHERE listingsid=?";
 
         db.connection.query(sqlstring, id, (err, result) => {
             if (err) {
@@ -96,7 +96,7 @@ var listingsDB = {
 
     // 10. update a listing
     updateListing: (data, callback) => {
-        var sqlstring = "UPDATE listings SET title=?, description=?, price=?, fk_poster_id=?, discount=?, category=? WHERE listingid=?";
+        var sqlstring = "UPDATE listings SET title=?, description=?, price=?, fk_poster_id=?, discount=?, category=? WHERE listingsid=?";
 
         var values = [
             data.title,
@@ -105,6 +105,7 @@ var listingsDB = {
             data.fk_poster_id,
             data.discount,
             data.category,
+            data.listingsid
         ];
 
 
