@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Nexus</title>
+    <link rel="stylesheet" href="./styles/login.css">
+    <script>
+        function loginUser(email, uid) {
+            var uuid = uid.charAt(2);
+            var lvl = Math.floor(Math.random() * 100 + 1);
+            var username = email.split("@")[0];
+            document.cookie = "uuid=" + uuid;
+            document.cookie = "username=" + username;
+            document.cookie = "lvl=" + lvl;
+        }
+        function createUser(email, uid) {
+            var uuid = uid.charAt(2);
+            var lvl = 1;
+            var username = email.split("@")[0];
+            document.cookie = "uuid=" + uuid;
+            document.cookie = "username=" + username;
+            document.cookie = "lvl=" + lvl;
+        }
+    </script>
+</head>
+
+<body>
+
+    <div id="large-header" class="large-header">
+        <!-- Interactive background -->
+        <canvas id="demo-canvas"></canvas>
+        <div id="login" class="loginpan vh-100 w-100 d-flex justify-content-center align-items-center ">
+            <div class="container overflow-hidden" v-bind:class="{'sign-up-active' : signUp}">
+                <div class="overlay-container w-50 h-100 overflow-hidden">
+                    <div class="overlay h-100">
+                        <div
+                            class="overlay-left h-100 w-50 p-5 text-center d-flex justify-content-center flex-column align-items-center">
+                            <h2 class="m-0">Welcome Back!</h2>
+                            <p>Please login with your personal info</p>
+                            <button class="invert px-4 py-1" id="signIn" @click="signUp = !signUp">Log In</button>
+                        </div>
+                        <div
+                            class="overlay-right h-100 w-50 p-5 text-center d-flex justify-content-center flex-column align-items-center">
+                            <h2 class="m-0">Hello, Friend!</h2>
+                            <p>Please enter your personal details</p>
+                            <button class="invert px-4 py-1" id="signUp" @click="signUp = !signUp">Sign Up</button>
+                        </div>
+                    </div>
+                </div>
+                <form class="sign-up w-50 p-5 text-center d-flex justify-content-around flex-column align-items-center"
+                    action="/index.html">
+                    <h2>Create Your Account</h2>
+                    <div>Use your email for registration</div>
+                    <input type="text" id="su-name" placeholder="Name" class="mt-2 w-100" v-model="su_name">
+                    <input type="email" id="su-email" class="mt-2 w-100" placeholder="Email" v-model="su_email">
+                    <input type="password" id="su-password" class="mt-2 mb-1 w-100" placeholder="Password"
+                        v-model="su_password">
+                    <button class="px-4 py-1 my-3"
+                        onclick="createUser(document.getElementById('su-email').value, document.getElementById('su-password').value)">Sign
+                        Up</button>
+                </form>
+                <form class="sign-in w-50 p-5 text-center d-flex justify-content-around flex-column align-items-center"
+                    action="/index.html">
+                    <h2>Log In</h2>
+                    <div>Use your account</div>
+                    <input type="email" id="si-email" class="mt-2 w-100" placeholder="Email" v-model="si_email"
+                        name="si_name">
+                    <input type="password" id="si-password" class="mt-2 mb-1 w-100" placeholder="Password"
+                        v-model="si_password">
+                    <a class="text-dark" href="#">Forgot your password?</a>
+                    <button class="px-4 py-1 my-3"
+                        onclick="loginUser(document.getElementById('si-email').value, document.getElementById('si-password').value)">Log
+                        In</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/499416/TweenLite.min.js'></script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/499416/EasePack.min.js'></script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/499416/demo.js'></script>
+    <script>
+        const login = new Vue({
+            el: '#login',
+            data: {
+                su_name: '',
+                su_email: null,
+                su_password: null,
+                si_email: null,
+                si_password: null,
+                userid: 0,
+                userlvl: 0,
+                signUp: false,
+            },
+            methods: {
+                login: function () {
+                    this.userid = this.si_password.charAt(0);
+                    this.userlvl = Math.floor(Math.random() * 100 + 1)
+                    console.log(this.userid);
+                    console.log(this.userlvl);
+                },
+                signup: function () {
+                    this.userid = this.su_password.charAt(0);
+                    console.log(this.userid);
+                }
+            }
+        })
+    </script>
+
+</body>
+
+</html>

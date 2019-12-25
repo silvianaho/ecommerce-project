@@ -63,7 +63,6 @@ var listingsDB = {
             data.price,
             data.fk_poster_id,
             data.category,
-            data.discount,
         ];
 
         db.connection.query(sqlstring, values, (err, result) => {

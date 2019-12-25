@@ -8,17 +8,19 @@ const express = require('express');
 const app = express();
 
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const users = require('../model/users');
 const listings = require('../model/listings');
 const offers = require('../model/offers');
+const categories = require('../model/categories');
 
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 var jsonParser = bodyParser.json()
 
 app.use(urlencodedParser);
 app.use(jsonParser);
-
+app.use(cors());
 
 // 1. get all users
 app.get('/users', (req, res) => {
@@ -171,7 +173,6 @@ app.post('/listings', (req, res) => {
         price: req.body.price,
         fk_poster_id: req.body.fk_poster_id,
         category: req.body.category,
-        discount: req.body.discount,
     }
 
     listings.addListing(data, (err, result) => {
@@ -272,5 +273,18 @@ app.post('/listings/:id/offers', (req, res) => {
     })
 });
 
+// Get all Categories
+app.get('/categories', (req, res) => {
+    console.log("Servicing GET /categories...");
+
+    categories.getCategories((err, result) => {
+        if (!err) {
+            res.status(200).type("json").send(JSON.stringify(result));
+        }
+        else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
+})
 
 module.exports = app;
