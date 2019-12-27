@@ -16,10 +16,11 @@ var usersDB = {
     },
     // 2. create a new user
     addUser: (data, callback) => {
-        var sqlstring = "INSERT INTO users (username, profile_pic_url) VALUES (?, ?)";
+        var sqlstring = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
         var values = [
             data.username,
-            data.profile_pic_url
+            data.email,
+            data.password
         ];
 
         db.connection.query(sqlstring, values, (err, result) => {
@@ -57,7 +58,7 @@ var usersDB = {
         if (data.profile_pic_url === "") {
             data.profile_pic_url = "https://cutt.ly/MrqA7lB";
         };
-        
+
         // trigger error if username field is an empty string
         // better to do it on the front end 
         if (data.username === "") {

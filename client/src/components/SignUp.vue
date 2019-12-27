@@ -27,24 +27,30 @@
         <!-- Signup form -->
         <form
           class="sign-up w-50 py-5 px-md-5 px-3 text-center d-flex justify-content-around flex-column align-items-center"
-          action="/index.html"
+          action="/"
         >
           <h2>Create Your Account</h2>
           <div>Use your email for registration</div>
-          <input type="text" id="su-name" placeholder="Name" class="mt-2 w-100" v-model="su_name" />
+          <input
+            type="text"
+            id="su-name"
+            placeholder="Username"
+            class="mt-2 w-100"
+            v-model="signup.su_username"
+          />
           <input
             type="email"
             id="su-email"
             class="mt-2 w-100"
             placeholder="Email"
-            v-model="su_email"
+            v-model="signup.su_email"
           />
           <input
             type="password"
             id="su-password"
             class="mt-2 mb-1 w-100"
             placeholder="Password"
-            v-model="su_password"
+            v-model="signup.su_password"
           />
           <button
             class="px-4 py-1 my-3"
@@ -61,7 +67,7 @@
         <!-- login form -->
         <form
           class="sign-in w-50 py-5 px-md-5 px-3 text-center d-flex justify-content-around flex-column align-items-center"
-          action="/index.html"
+          action="/"
         >
           <h2>Log In</h2>
           <div>Use your account</div>
@@ -70,21 +76,18 @@
             id="si-email"
             class="mt-2 w-100"
             placeholder="Email"
-            v-model="si_email"
-            name="si_name"
+            v-model="signin.si_email"
+            name="si_email"
           />
           <input
             type="password"
             id="si-password"
             class="mt-2 mb-1 w-100"
             placeholder="Password"
-            v-model="si_password"
+            v-model="signin.si_password"
           />
           <a class="text-dark" href="#">Forgot your password?</a>
-          <button
-            class="px-4 py-1 my-3"
-            onclick="loginUser(document.getElementById('si-email').value, document.getElementById('si-password').value)"
-          >
+          <button class="px-4 py-1 my-3" @click="handleLogin">
             Log
             In
           </button>
@@ -99,15 +102,21 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
   name: "SignUp",
   data() {
     return {
-      su_name: "",
-      su_email: null,
-      su_password: null,
-      si_email: null,
-      si_password: null,
+      signup: {
+        su_username: "",
+        su_email: null,
+        su_password: null
+      },
+      signin: {
+        si_email: null,
+        si_password: null
+      },
+      userid: null,
       signUp: false
     };
   },
@@ -131,6 +140,30 @@ export default {
       "https://s3-us-west-2.amazonaws.com/s.cdpn.io/499416/demo.js"
     );
     document.body.appendChild(demo);
+  },
+  methods: {
+    /* handleLogin() {
+      if (this.signin.si_password.length > 0 && this.signin.si_email.length > 0) {
+        axios
+          .post("http://localhost:3000/login", this.signin)
+          .then(response => {})
+          .catch(error => {
+            // eslint-disable-next-line no-console
+            console.error(error);
+          });
+      }
+    },
+    handleSignup() {
+      if (this.password.length > 0) {
+        axios
+          .post("http://localhost:3000/users", this.signup)
+          .then(response => {})
+          .catch(error => {
+            // eslint-disable-next-line no-console
+            console.error(error);
+          });
+      }
+    } */
   }
 };
 </script>
@@ -145,7 +178,7 @@ export default {
 }
 
 .bg {
-  height: 92.6vh !important;
+  height: 92vh !important;
   overflow: hidden;
   background-color: rgba(5, 13, 31, 0.959);
   background-size: contain;
@@ -303,10 +336,10 @@ form {
   }
 }
 
-@media (min-width:450px){
-    .mobile-switch {
-        display: none;
-    }
+@media (min-width: 450px) {
+  .mobile-switch {
+    display: none;
+  }
 }
 
 @media (max-width: 800px) {

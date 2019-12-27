@@ -3,7 +3,7 @@
     class="navbar navbar-expand-md navbar-light bg-white border-bottom"
     v-bind:class="{ 'navbarOpen': showNav }"
   >
-    <a class="navbar-brand ml-2" href="/">SnapSell</a>
+    <a class="navbar-brand ml-2"><router-link to="/" class="navbar-brand">SnapSell</router-link></a>
     <!-- toggle navbar on mobile -->
     <button
       class="navbar-toggler"
@@ -34,14 +34,14 @@
       <ul class="navbar-nav ml-auto mr-2">
         <li class="nav-item active">
           <a class="nav-link" href="#">
-            <router-link to="/signup" class="nav-link">Login</router-link>
+            <router-link to="/login" class="nav-link">Login/Register</router-link>
           </a>
         </li>
-        <li class="nav-item">
+        <!-- <li class="nav-item">
           <a class="nav-link" href="#">
             <router-link to="/signup" class="nav-link">Register</router-link>
           </a>
-        </li>
+        </li> -->
         <li class="nav-item">
           <button class="btn btn-dark" v-bind:class="{ 'w-50': showNav }">
             <router-link to="/sell" class="nav-link text-white">Sell</router-link>

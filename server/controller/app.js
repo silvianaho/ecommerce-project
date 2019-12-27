@@ -42,7 +42,8 @@ app.post('/users', (req, res) => {
 
     var data = {
         username: req.body.username,
-        profile_pic_url: req.body.profile_pic_url,
+        email: req.body.email,
+        password: req.body.password
     }
 
     users.addUser(data, (err, result) => {

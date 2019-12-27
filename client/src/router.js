@@ -1,7 +1,10 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+// @ts-ignore
 import Listings from './components/Listings';
+// @ts-ignore
 import AddListing from './components/AddListing';
+// @ts-ignore
 import SignUp from './components/SignUp';
 
 Vue.use(Router)
@@ -18,7 +21,7 @@ const routes = [
         component: AddListing
     },
     {
-        path: '/signup',
+        path: '/login',
         component: SignUp
     },
 ]

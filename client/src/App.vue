@@ -1,12 +1,12 @@
 <template>
-  <div id="app">
-    <NavBar/>    
+  <div id="app" v-cloak>
+    <NavBar />
     <router-view></router-view>
   </div>
 </template>
 
 <script>
-import NavBar from './components/NavBar';
+import NavBar from "./components/NavBar";
 
 export default {
   name: "app",
@@ -17,6 +17,10 @@ export default {
 </script>
 
 <style>
+[v-cloak] {
+  display: none;
+}
+
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
