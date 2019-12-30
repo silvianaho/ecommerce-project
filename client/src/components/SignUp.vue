@@ -28,6 +28,7 @@
         <form
           class="sign-up w-50 py-5 px-md-5 px-3 text-center d-flex justify-content-around flex-column align-items-center"
           action="/"
+          v-on:submit.prevent="handleSignup()"
         >
           <h2>Create Your Account</h2>
           <div>Use your email for registration</div>
@@ -36,26 +37,23 @@
             id="su-name"
             placeholder="Username"
             class="mt-2 w-100"
-            v-model="signup.su_username"
+            v-model="signup.username"
           />
           <input
             type="email"
             id="su-email"
             class="mt-2 w-100"
             placeholder="Email"
-            v-model="signup.su_email"
+            v-model="signup.email"
           />
           <input
             type="password"
             id="su-password"
             class="mt-2 mb-1 w-100"
             placeholder="Password"
-            v-model="signup.su_password"
+            v-model="signup.password"
           />
-          <button
-            class="px-4 py-1 my-3"
-            onclick="createUser(document.getElementById('su-email').value, document.getElementById('su-password').value)"
-          >
+          <button class="px-4 py-1 my-3" type="submit">
             Sign
             Up
           </button>
@@ -68,6 +66,7 @@
         <form
           class="sign-in w-50 py-5 px-md-5 px-3 text-center d-flex justify-content-around flex-column align-items-center"
           action="/"
+          v-on:submit.prevent="handleLogin()"
         >
           <h2>Log In</h2>
           <div>Use your account</div>
@@ -76,7 +75,7 @@
             id="si-email"
             class="mt-2 w-100"
             placeholder="Email"
-            v-model="signin.si_email"
+            v-model="signin.email"
             name="si_email"
           />
           <input
@@ -84,10 +83,10 @@
             id="si-password"
             class="mt-2 mb-1 w-100"
             placeholder="Password"
-            v-model="signin.si_password"
+            v-model="signin.password"
           />
           <a class="text-dark" href="#">Forgot your password?</a>
-          <button class="px-4 py-1 my-3" @click="handleLogin">
+          <button class="px-4 py-1 my-3" type="submit">
             Log
             In
           </button>
@@ -103,18 +102,21 @@
 
 <script>
 import axios from "axios";
+import router from "../router";
+import EventBus from "./EventBus";
+
 export default {
   name: "SignUp",
   data() {
     return {
       signup: {
-        su_username: "",
-        su_email: null,
-        su_password: null
+        username: "",
+        email: null,
+        password: null
       },
       signin: {
-        si_email: null,
-        si_password: null
+        email: null,
+        password: null
       },
       userid: null,
       signUp: false
@@ -128,12 +130,14 @@ export default {
       "https://s3-us-west-2.amazonaws.com/s.cdpn.io/499416/TweenLite.min.js"
     );
     document.body.appendChild(TweenLite);
+
     let EasePack = document.createElement("script");
     EasePack.setAttribute(
       "src",
       "https://s3-us-west-2.amazonaws.com/s.cdpn.io/499416/EasePack.min.js"
     );
     document.body.appendChild(EasePack);
+
     let demo = document.createElement("script");
     demo.setAttribute(
       "src",
@@ -141,29 +145,39 @@ export default {
     );
     document.body.appendChild(demo);
   },
+
   methods: {
-    /* handleLogin() {
-      if (this.signin.si_password.length > 0 && this.signin.si_email.length > 0) {
-        axios
-          .post("http://localhost:3000/login", this.signin)
-          .then(response => {})
-          .catch(error => {
-            // eslint-disable-next-line no-console
-            console.error(error);
-          });
-      }
+    handleLogin() {
+      // eslint-disable-next-line no-console
+      console.log(this.signin)
+      axios
+        .post("http://localhost:3000/login", this.signin)
+        .then(result => {
+          localStorage.setItem("usertoken", result.data);
+          router.push({ name: "listings" });
+        })
+        .catch(error => {
+          // eslint-disable-next-line no-console
+          console.error(error);
+        });
+      this.emitMethod();
+    },
+    emitMethod() {
+      EventBus.$emit("logged-in", "loggedin");
     },
     handleSignup() {
-      if (this.password.length > 0) {
-        axios
-          .post("http://localhost:3000/users", this.signup)
-          .then(response => {})
-          .catch(error => {
-            // eslint-disable-next-line no-console
-            console.error(error);
-          });
-      }
-    } */
+      axios
+        .post("http://localhost:3000/users", this.signup)
+        .then(result => {
+          router.push({ name: "Login" });
+          // eslint-disable-next-line no-console
+          console.log(result);
+        })
+        .catch(error => {
+          // eslint-disable-next-line no-console
+          console.error(error);
+        });
+    }
   }
 };
 </script>

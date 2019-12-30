@@ -32,8 +32,6 @@ export default {
       axios
         .get("http://localhost:3000/listings")
         .then(result => {
-        //   console.log(result.data);
-
           this.listings = result.data;
         })
         .catch(error => {

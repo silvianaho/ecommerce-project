@@ -9,6 +9,9 @@ const app = express();
 
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
+
 
 const users = require('../model/users');
 const listings = require('../model/listings');
@@ -46,16 +49,24 @@ app.post('/users', (req, res) => {
         password: req.body.password
     }
 
-    users.addUser(data, (err, result) => {
-        if (!err) {
-            var output = {
-                "userID": result.insertId
+    bcrypt.hash(req.body.password, 10, (err, hash) => {
+        data.password = hash
+        users.addUser(data, (err, result) => {
+            if (!err) {
+                var output = {
+                    "userID": result.insertId,
+                }
+                res.status(201).type("json").send(JSON.stringify(output));
+            } else {
+                if (err.errno === 1062) {
+                    res.status(422).type("json").send(JSON.stringify(err));
+                } else {
+                    res.status(500).type("json").send(JSON.stringify(err));
+                }
             }
-            res.status(201).type("json").send(JSON.stringify(output));
-        } else {
-            res.status(500).type("json").send(JSON.stringify(err));
-        }
+        })
     })
+
 });
 
 // 3. get user by id
@@ -86,21 +97,26 @@ app.put('/users/:id', (req, res) => {
 
     var data = {
         username: req.body.username,
+        email:req.body.email,
+        password: req.body.password,
         profile_pic_url: req.body.profile_pic_url,
         userid: req.params.id,
     };
 
-    users.updateUser(data, (err, result) => {
-        if (!err) {
-            res.status(204).type("json").send(JSON.stringify(result));
-        }
-        else {
-            if (err.errno === 1062) {
-                res.status(422).type("json").send(JSON.stringify(err));
-            } else {
-                res.status(500).type("json").send(JSON.stringify(err));
+    bcrypt.hash(req.body.password, 10, (err, hash) => {
+        data.password = hash;
+        users.updateUser(data, (err, result) => {
+            if (!err) {
+                res.status(204).type("json").send(JSON.stringify(result));
             }
-        }
+            else {
+                if (err.errno === 1062) {
+                    res.status(422).type("json").send(JSON.stringify(err));
+                } else {
+                    res.status(500).type("json").send(JSON.stringify(err));
+                }
+            }
+        })
     })
 
 });
@@ -274,13 +290,47 @@ app.post('/listings/:id/offers', (req, res) => {
     })
 });
 
-// Get all Categories
+// 13. Get all Categories
 app.get('/categories', (req, res) => {
     console.log("Servicing GET /categories...");
 
     categories.getCategories((err, result) => {
         if (!err) {
             res.status(200).type("json").send(JSON.stringify(result));
+        }
+        else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
+})
+
+// 14. Login
+app.post('/login', (req, res) => {
+    console.log("Servicing POST /login...");
+    var data = {
+        email: req.body.email,
+        password: req.body.password
+    }
+    console.log(data);
+    
+
+    users.findUserbyEmail(data.email, (err, result) => {
+        if (!err) {
+            if (!result) {
+                var output = {
+                    "message": "User does not exist."
+                }
+                res.status(404).type("json").send(JSON.stringify(output));
+            } else if (bcrypt.compareSync(data.password, result[0].password)) {
+                let token = jwt.sign(data, process.env.SECRET_KEY, { expiresIn: 3600 })
+                res.send(token);
+            }
+            else {
+                let output = {
+                    error: "Wrong password."
+                }
+                res.status(400).type("json").send(output);
+            }
         }
         else {
             res.status(500).type("json").send(JSON.stringify(err));

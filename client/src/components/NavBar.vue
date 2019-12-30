@@ -3,7 +3,9 @@
     class="navbar navbar-expand-md navbar-light bg-white border-bottom"
     v-bind:class="{ 'navbarOpen': showNav }"
   >
-    <a class="navbar-brand ml-2"><router-link to="/" class="navbar-brand">SnapSell</router-link></a>
+    <a class="navbar-brand ml-2">
+      <router-link to="/" class="navbar-brand">SnapSell</router-link>
+    </a>
     <!-- toggle navbar on mobile -->
     <button
       class="navbar-toggler"
@@ -32,16 +34,24 @@
         <input type="text" class="form-control" aria-label="Text input with dropdown button" />
       </div>
       <ul class="navbar-nav ml-auto mr-2">
-        <li class="nav-item active">
+        <li v-if="auth=='' && (token==null || token==undefined)" class="nav-item">
           <a class="nav-link" href="#">
             <router-link to="/login" class="nav-link">Login/Register</router-link>
           </a>
         </li>
-        <!-- <li class="nav-item">
+
+        <li v-if="auth=='loggedin' || token!=null || token!=undefined" class="nav-item">
           <a class="nav-link" href="#">
-            <router-link to="/signup" class="nav-link">Register</router-link>
+            <router-link class="nav-link" to="/profile">Profile</router-link>
           </a>
-        </li> -->
+        </li>
+
+        <li v-if="auth=='loggedin' || token!=null || token!=undefined" class="nav-item">
+          <a class="nav-link" href v-on:click="logout">
+            <router-link class="nav-link" to="/">Log Out</router-link>
+          </a>
+        </li>
+
         <li class="nav-item">
           <button class="btn btn-dark" v-bind:class="{ 'w-50': showNav }">
             <router-link to="/sell" class="nav-link text-white">Sell</router-link>
@@ -53,16 +63,28 @@
 </template>
 
 <script>
+import EventBus from "./EventBus";
+
 export default {
   name: "NavBar",
   data() {
     return {
+      auth: "",
+      token: localStorage.usertoken,
       showNav: false,
       searchOption: [{ id: 1, text: "Items" }, { id: 2, text: "People" }],
       selectedsearch: "Items"
     };
   },
+  mounted() {
+    EventBus.$on("logged-in", status => {
+      this.auth = status;
+    });
+  },
   methods: {
+    logout() {
+      localStorage.removeItem("usertoken");
+    },
     toggleNavbar() {
       this.showNav = !this.showNav;
     }

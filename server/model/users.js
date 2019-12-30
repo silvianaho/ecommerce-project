@@ -14,6 +14,7 @@ var usersDB = {
             }
         })
     },
+    
     // 2. create a new user
     addUser: (data, callback) => {
         var sqlstring = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
@@ -53,26 +54,53 @@ var usersDB = {
 
     // 4. update user    
     updateUser: (data, callback) => {
-        var sqlstring = "UPDATE users SET username=?, profile_pic_url=? WHERE userid=?";
-        // set default profile picture if field is empty 
-        if (data.profile_pic_url === "") {
-            data.profile_pic_url = "https://cutt.ly/MrqA7lB";
-        };
+        var sqlstring = "UPDATE users SET username=?, email=?, password=?, profile_pic_url=? WHERE userid=?";
 
-        // trigger error if username field is an empty string
-        // better to do it on the front end 
-        if (data.username === "") {
-            data.username = null;
-        };
+        usersDB.findUserbyID(data.userid, (err, result) => {
+            if (data.username === "") {
+                data.username = result[0].username;
+            };
+            if (data.email === "") {
+                data.email = result[0].email;
+            };
+            if (data.password === "") {
+                data.password = result[0].password;
+            };
+            if (data.profile_pic_url === "") {
+                data.profile_pic_url = result[0].profile_pic_url;
+            };
+            
+            var values = [
+                data.username,
+                data.email,
+                data.password,
+                data.profile_pic_url,
+                data.userid
+            ];
+            
+            db.connection.query(sqlstring, values, (err, result) => {
+                if (err) {
+                    console.log(err);
+                    return callback(err, null);
+                } else {
+                    if (result.length == 0) {
+                        return callback(null, null);
+                    } else {
+                        return callback(null, result);
+                    }
+                }
+            })
+        })
 
-        var values = [
-            data.username,
-            data.profile_pic_url,
-            data.userid
-        ];
 
 
-        db.connection.query(sqlstring, values, (err, result) => {
+    },
+
+    // 5. Find user by email
+    findUserbyEmail: (email, callback) => {
+        var sqlstring = "SELECT * FROM users WHERE email=?";
+
+        db.connection.query(sqlstring, email, (err, result) => {
             if (err) {
                 console.log(err);
                 return callback(err, null);
@@ -84,7 +112,7 @@ var usersDB = {
                 }
             }
         })
-    }
+    },
 };
 
 module.exports = usersDB;
