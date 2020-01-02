@@ -17,6 +17,7 @@ const users = require('../model/users');
 const listings = require('../model/listings');
 const offers = require('../model/offers');
 const categories = require('../model/categories');
+const likes = require('../model/likes');
 
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 var jsonParser = bodyParser.json()
@@ -53,13 +54,29 @@ app.post('/users', (req, res) => {
         data.password = hash
         users.addUser(data, (err, result) => {
             if (!err) {
-                var output = {
-                    "userID": result.insertId,
+                let cred = {
+                    userid: result.insertId,
+                    email: req.body.email,
+                    password: hash,
                 }
-                res.status(201).type("json").send(JSON.stringify(output));
+                users.insertPwd(cred, (pwderr, pwdresult) => {
+                    if (!pwderr) {
+                        var output = {
+                            "userID": result.insertId,
+                        }
+                        res.status(201).type("json").send(JSON.stringify(output));
+                    }
+                    else {
+                        res.status(500).type("json").send(JSON.stringify({ err, pwderr }));
+                    }
+                })
             } else {
                 if (err.errno === 1062) {
-                    res.status(422).type("json").send(JSON.stringify(err));
+                    let output = {
+                        err,
+                        error: "This Username/Email is Taken.",
+                    }
+                    res.status(422).type("json").send(JSON.stringify(output));
                 } else {
                     res.status(500).type("json").send(JSON.stringify(err));
                 }
@@ -78,7 +95,7 @@ app.get('/users/:id', (req, res) => {
         if (!err) {
             if (!result) {
                 var output = {
-                    "message": "User does not exist."
+                    error: "User does not exist."
                 }
                 res.status(404).type("json").send(JSON.stringify(output));
             } else {
@@ -97,7 +114,7 @@ app.put('/users/:id', (req, res) => {
 
     var data = {
         username: req.body.username,
-        email:req.body.email,
+        email: req.body.email,
         password: req.body.password,
         profile_pic_url: req.body.profile_pic_url,
         userid: req.params.id,
@@ -107,7 +124,19 @@ app.put('/users/:id', (req, res) => {
         data.password = hash;
         users.updateUser(data, (err, result) => {
             if (!err) {
-                res.status(204).type("json").send(JSON.stringify(result));
+                let cred = {
+                    userid: data.userid,
+                    email: req.body.email,
+                    password: hash,
+                }
+                users.updateCreds(cred, (pwderr, pwdresult) => {
+                    if (!pwderr) {
+                        res.status(204).type("json").send(JSON.stringify(result));
+                    }
+                    else {
+                        res.status(500).type("json").send(JSON.stringify({ err, pwderr }));
+                    }
+                })
             }
             else {
                 if (err.errno === 1062) {
@@ -160,7 +189,7 @@ app.get('/listings', (req, res) => {
 
 // 7. get listings by listing id
 app.get('/listings/:listing_id', (req, res) => {
-    console.log("Servicing GET /users/:listing_id...");
+    console.log("Servicing GET /listings/:listing_id...");
 
     var listing_id = req.params.listing_id;
     listings.findListingbyID(listing_id, (err, result) => {
@@ -189,7 +218,8 @@ app.post('/listings', (req, res) => {
         description: req.body.description,
         price: req.body.price,
         fk_poster_id: req.body.fk_poster_id,
-        category: req.body.category,
+        fk_category_id: req.body.fk_category_id,
+        item_condition: req.body.item_condition,
     }
 
     listings.addListing(data, (err, result) => {
@@ -311,19 +341,20 @@ app.post('/login', (req, res) => {
         email: req.body.email,
         password: req.body.password
     }
-    console.log(data);
-    
 
     users.findUserbyEmail(data.email, (err, result) => {
         if (!err) {
             if (!result) {
                 var output = {
-                    "message": "User does not exist."
+                    error: "User does not exist."
                 }
-                res.status(404).type("json").send(JSON.stringify(output));
+                res.status(400).type("json").send(JSON.stringify(output));
             } else if (bcrypt.compareSync(data.password, result[0].password)) {
-                let token = jwt.sign(data, process.env.SECRET_KEY, { expiresIn: 3600 })
-                res.send(token);
+                let output = {
+                    token: jwt.sign(data, process.env.SECRET_KEY, { expiresIn: 3600 }),
+                    userid: result[0].userid
+                }
+                res.status(200).type("json").send(output);
             }
             else {
                 let output = {
@@ -337,5 +368,103 @@ app.post('/login', (req, res) => {
         }
     })
 })
+
+// 15. Validate token
+app.post('/validate', (req, res) => {
+    console.log("Servicing POST /validate...");
+
+    let token = req.headers.authorization;
+
+    if (token.startsWith('Bearer ')) {
+        token = token.slice(7, token.length);
+    }
+
+    jwt.verify(token, process.env.SECRET_KEY, function (err, decodedToken) {
+        if (!err) {
+            let output = {
+                token: jwt.sign(decodedToken, process.env.SECRET_KEY)
+            }
+            res.status(200).type("json").send(output)
+
+        } else {
+            let output = { "message": "the current user is not logged in" }
+            res.status(401).type("json").send(output)
+        }
+    })
+})
+
+// 16. Get users that liked this item
+app.get('/listings/:listingid/likes', (req, res) => {
+    console.log("Servicing GET /listings/:listing_id/likes...");
+
+    var listingid = req.params.listingid;
+
+    likes.usersWhoLikedThis(listingid, (err, result) => {
+        if (!err) {
+            let output = {
+                likers: result,
+                likeCount: result.length
+            }
+            res.status(200).type("json").send(JSON.stringify(output));
+        }
+        else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
+
+})
+
+// 17. Get items liked by user
+app.get('/users/:userid/likes', (req, res) => {
+    console.log("Servicing GET /users/:userid/likes...");
+
+    var userid = req.params.userid;
+
+    likes.listingLikedByUser(userid, (err, result) => {
+        if (!err) {
+            res.status(200).type("json").send(JSON.stringify(result));
+        }
+        else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
+
+})
+
+// 18. Like a listing
+app.post('/listings/:listingid/likes', (req, res) => {
+    console.log("Servicing POST /listings/:listingid/likes...");
+
+    var data = {
+        listingid: req.params.listingid,
+        userid: req.body.userid
+    }
+
+    likes.likeAListing(data, (err, result) => {
+        if (!err) {
+            res.status(204).type("json").send(JSON.stringify(result));
+        } else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
+});
+
+// 18. Unlike a listing
+app.delete('/listings/:listingid/likes', (req, res) => {
+    console.log("Servicing POST /listings/:listingid/likes...");
+
+    var data = {
+        listingid: req.params.listingid,
+        userid: req.body.userid
+    }
+
+    likes.unlikeAListing(data, (err, result) => {
+        if (!err) {
+            res.status(204).type("json").send(JSON.stringify(result));
+        } else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
+});
 
 module.exports = app;

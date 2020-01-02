@@ -56,13 +56,14 @@ var listingsDB = {
 
     // 8. add new listing
     addListing: (data, callback) => {
-        var sqlstring = "INSERT INTO listings (title, description, price, fk_poster_id, category) VALUES (?, ?, ?, ?, ?)";
+        var sqlstring = "INSERT INTO listings (title, description, price, fk_poster_id, fk_category_id, item_condition) VALUES (?, ?, ?, ?, ?, ?)";
         var values = [
             data.title,
             data.description,
             data.price,
             data.fk_poster_id,
-            data.category,
+            data.fk_category_id,
+            data.item_condition
         ];
 
         db.connection.query(sqlstring, values, (err, result) => {

@@ -38,6 +38,8 @@
             placeholder="Username"
             class="mt-2 w-100"
             v-model="signup.username"
+            @change="errors = []"
+            required
           />
           <input
             type="email"
@@ -45,6 +47,8 @@
             class="mt-2 w-100"
             placeholder="Email"
             v-model="signup.email"
+            @change="errors = []"
+            required
           />
           <input
             type="password"
@@ -52,12 +56,14 @@
             class="mt-2 mb-1 w-100"
             placeholder="Password"
             v-model="signup.password"
+            required
           />
-          <button class="px-4 py-1 my-3" type="submit">
+          <p class="text-danger mb-0" v-if="errors.length">{{errors[0]}}</p>
+          <button class="px-4 py-1 mb-3" type="submit">
             Sign
             Up
           </button>
-          <p class="mobile-switch">
+          <p class="mobile-switch" id="su-mobile-switch">
             Already have an account?
             <a href="#" class="text-dark" @click="signUp = !signUp">Login</a>
           </p>
@@ -77,6 +83,7 @@
             placeholder="Email"
             v-model="signin.email"
             name="si_email"
+            required
           />
           <input
             type="password"
@@ -84,13 +91,15 @@
             class="mt-2 mb-1 w-100"
             placeholder="Password"
             v-model="signin.password"
+            required
           />
+          <p class="text-danger" v-if="errors.length">{{errors[0]}}</p>
           <a class="text-dark" href="#">Forgot your password?</a>
           <button class="px-4 py-1 my-3" type="submit">
             Log
             In
           </button>
-          <p class="mobile-switch">
+          <p class="mobile-switch" id="si-mobile-switch">
             Don't have an account?
             <a href="#" class="text-dark" @click="signUp = !signUp">Sign Up</a>
           </p>
@@ -119,7 +128,8 @@ export default {
         password: null
       },
       userid: null,
-      signUp: false
+      signUp: false,
+      errors: []
     };
   },
   // I want to add fancy background animation
@@ -148,19 +158,22 @@ export default {
 
   methods: {
     handleLogin() {
-      // eslint-disable-next-line no-console
-      console.log(this.signin)
       axios
         .post("http://localhost:3000/login", this.signin)
         .then(result => {
-          localStorage.setItem("usertoken", result.data);
+          localStorage.setItem("usertoken", result.data.token);
+          localStorage.setItem("userid", result.data.userid);
           router.push({ name: "listings" });
+          this.emitMethod();
         })
         .catch(error => {
           // eslint-disable-next-line no-console
           console.error(error);
+          // eslint-disable-next-line no-console
+          console.log(error.response.data.error);
+          this.errors = [];
+          this.errors.push(error.response.data.error);
         });
-      this.emitMethod();
     },
     emitMethod() {
       EventBus.$emit("logged-in", "loggedin");
@@ -169,13 +182,14 @@ export default {
       axios
         .post("http://localhost:3000/users", this.signup)
         .then(result => {
-          router.push({ name: "Login" });
           // eslint-disable-next-line no-console
           console.log(result);
         })
         .catch(error => {
           // eslint-disable-next-line no-console
           console.error(error);
+          this.errors = [];
+          this.errors.push(error.response.data.error);
         });
     }
   }

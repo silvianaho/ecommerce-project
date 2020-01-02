@@ -14,15 +14,31 @@ var usersDB = {
             }
         })
     },
-    
+
     // 2. create a new user
     addUser: (data, callback) => {
-        var sqlstring = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+        var sqlstring = `INSERT INTO users (username, email) VALUES (?, ?)`;
         var values = [
             data.username,
             data.email,
-            data.password
         ];
+
+        db.connection.query(sqlstring, values, (err, result) => {
+            if (err) {
+                console.log(err);
+                return callback(err, null);
+            } else {
+                return callback(null, result);
+            }
+        })
+    },
+    // 2.5. insert password to another table
+    insertPwd: (data, callback) => {
+        var sqlstring = `INSERT INTO usercreds (userid, email, password) VALUES (?, ?, ?)`;
+        var values = [
+            data.userid,
+            data.email,
+            data.password];
 
         db.connection.query(sqlstring, values, (err, result) => {
             if (err) {
@@ -52,9 +68,26 @@ var usersDB = {
         })
     },
 
+    findUserbyIDcreds: (id, callback) => {
+        var sqlstring = "SELECT * FROM usercreds WHERE userid=?";
+
+        db.connection.query(sqlstring, id, (err, result) => {
+            if (err) {
+                console.log(err);
+                return callback(err, null);
+            } else {
+                if (result.length == 0) {
+                    return callback(null, null);
+                } else {
+                    return callback(null, result);
+                }
+            }
+        })
+    },
+
     // 4. update user    
     updateUser: (data, callback) => {
-        var sqlstring = "UPDATE users SET username=?, email=?, password=?, profile_pic_url=? WHERE userid=?";
+        var sqlstring = "UPDATE users SET username=?, email=?, profile_pic_url=? WHERE userid=?";
 
         usersDB.findUserbyID(data.userid, (err, result) => {
             if (data.username === "") {
@@ -63,21 +96,17 @@ var usersDB = {
             if (data.email === "") {
                 data.email = result[0].email;
             };
-            if (data.password === "") {
-                data.password = result[0].password;
-            };
             if (data.profile_pic_url === "") {
                 data.profile_pic_url = result[0].profile_pic_url;
             };
-            
+
             var values = [
                 data.username,
                 data.email,
-                data.password,
                 data.profile_pic_url,
                 data.userid
             ];
-            
+
             db.connection.query(sqlstring, values, (err, result) => {
                 if (err) {
                     console.log(err);
@@ -91,14 +120,43 @@ var usersDB = {
                 }
             })
         })
+    },
 
+    updateCreds: (data, callback) => {
+        var sqlstring = "UPDATE usercreds SET email=?, password=? WHERE userid=?";
 
+        usersDB.findUserbyIDcreds(data.userid, (err, result) => {
+            if (data.email === "") {
+                data.email = result[0].email;
+            };
+            if (data.password === "") {
+                data.password = result[0].password;
+            };
 
+            var values = [
+                data.email,
+                data.password,
+                data.userid
+            ];
+
+            db.connection.query(sqlstring, values, (err, result) => {
+                if (err) {
+                    console.log(err);
+                    return callback(err, null);
+                } else {
+                    if (result.length == 0) {
+                        return callback(null, null);
+                    } else {
+                        return callback(null, result);
+                    }
+                }
+            })
+        })
     },
 
     // 5. Find user by email
     findUserbyEmail: (email, callback) => {
-        var sqlstring = "SELECT * FROM users WHERE email=?";
+        var sqlstring = "SELECT * FROM usercreds WHERE email=?";
 
         db.connection.query(sqlstring, email, (err, result) => {
             if (err) {

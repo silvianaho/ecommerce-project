@@ -7,11 +7,18 @@
 
 <script>
 import NavBar from "./components/NavBar";
+import router from "./router";
 
 export default {
   name: "app",
   components: {
     NavBar
+  },
+  data () {
+    return{
+    // eslint-disable-next-line no-console
+    routeName: router.currentRoute.name
+    }
   }
 };
 </script>

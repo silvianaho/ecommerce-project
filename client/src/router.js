@@ -5,7 +5,10 @@ import Listings from './components/Listings';
 // @ts-ignore
 import AddListing from './components/AddListing';
 // @ts-ignore
-import SignUp from './components/SignUp';
+import LogIn from './components/LogIn';
+// @ts-ignore
+import Profile from './components/Profile';
+
 
 Vue.use(Router)
 
@@ -21,8 +24,14 @@ const routes = [
         component: AddListing
     },
     {
+        name: 'login',
         path: '/login',
-        component: SignUp
+        component: LogIn
+    },
+    {
+        name: 'profile',
+        path: '/profile',
+        component: Profile
     },
 ]
 
