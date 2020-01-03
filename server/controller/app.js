@@ -11,6 +11,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const multer = require('multer')
 
 
 const users = require('../model/users');
@@ -25,6 +26,59 @@ var jsonParser = bodyParser.json()
 app.use(urlencodedParser);
 app.use(jsonParser);
 app.use(cors());
+
+const fileFilter = (req, file, callback) => {
+    const allowedType = ["image/jpg"];
+    if (!allowedType.includes(file.mimetype)) {
+        const error = new Error("Incorrect file type");
+        error.name = "INCORRECT_FILETYPE";
+        callback(error, false)
+    }
+    else{
+        callback(null, true);
+    }
+
+}
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, __dirname + '/assets/uploads')
+    },
+    filename: function (req, file, cb) {
+      console.log("file",file);  
+      let fileExtension = file.originalname.split('.')[1]
+      cb(null, file.fieldname + '-' + Date.now()+'.'+fileExtension)
+    }
+  })
+
+const upload = multer({
+    storage: storage,
+    // fileFilter,
+    // limits: {
+    //     fileSize: 1000000
+    // }
+})
+
+/* app.use((err, req, res, next) => {
+    console.log("meow");
+    if (err.code === "INCORRECT_FILETYPE") {
+        console.log(err);
+
+        let output = {
+            error: "Only .jpg images are allowed"
+        }
+        res.status(422).type("json").send(output);
+        return;
+    }
+    if (err.code === "LIMIT_FILE_SIZE") {
+        let output = {
+            error: "Maximum file size allowed is 1MB."
+        }
+        res.status(422).type("json").send(output)
+        return;
+
+    }
+}) */
 
 // 1. get all users
 app.get('/users', (req, res) => {
@@ -449,7 +503,7 @@ app.post('/listings/:listingid/likes', (req, res) => {
     })
 });
 
-// 18. Unlike a listing
+// 19. Unlike a listing
 app.delete('/listings/:listingid/likes', (req, res) => {
     console.log("Servicing POST /listings/:listingid/likes...");
 
@@ -466,5 +520,39 @@ app.delete('/listings/:listingid/likes', (req, res) => {
         }
     })
 });
+
+// 20. get user by username
+app.get('/profile/:username', (req, res) => {
+    console.log("Servicing GET /user/:username...");
+
+    var username = req.params.username;
+
+    users.findUserbyUsername(username, (err, result) => {
+        if (!err) {
+            if (!result) {
+                var output = {
+                    error: "User does not exist."
+                }
+                res.status(404).type("json").send(JSON.stringify(output));
+            } else {
+                res.status(200).type("json").send(JSON.stringify(result));
+            }
+        }
+        else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
+});
+
+app.post('/upload', upload.single('file'), (req, res) => {
+    console.log("Servicing POST /upload...");
+
+    if(req.file) {
+        res.json(req.file);
+    }
+    else throw 'error';
+})
+
+
 
 module.exports = app;

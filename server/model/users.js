@@ -85,6 +85,23 @@ var usersDB = {
         })
     },
 
+    findUserbyUsername: (username, callback) => {
+        var sqlstring = "SELECT * FROM users WHERE username=?";
+
+        db.connection.query(sqlstring, username, (err, result) => {
+            if (err) {
+                console.log(err);
+                return callback(err, null);
+            } else {
+                if (result.length == 0) {
+                    return callback(null, null);
+                } else {
+                    return callback(null, result);
+                }
+            }
+        })
+    },
+
     // 4. update user    
     updateUser: (data, callback) => {
         var sqlstring = "UPDATE users SET username=?, email=?, profile_pic_url=? WHERE userid=?";

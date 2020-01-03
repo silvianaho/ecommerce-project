@@ -10,9 +10,12 @@
           alt="profile picture"
         />
         <p class="font-weight-bolder h4 mt-2">@{{userinfo.username}}</p>
+        <p class="font-weight-normal mt-2">
+          Joined {{getCreatedAt(userinfo.created_at)}} day<span v-if="getCreatedAt(userinfo.created_at) > 1">s</span> ago
+        </p>
       </div>
       <div class="col-9 mt-5 pt-5">
-        <button class="btn btn-dark editprofile">Edit Profile</button>
+        <button v-if="isUser = true" class="btn btn-dark editprofile">Edit Profile</button>
         <div class="user-tabs">
           <!-- tabs -->
           <b-tabs content-class="mt-3" fill>
@@ -37,7 +40,9 @@
                       <p
                         v-if="listing.description.length >= 26"
                       >{{ listing.description.substring(0,26)+".." }}</p>
-                      <p class="card-subtitle font-weight-light text-muted">{{ listing.item_condition }}</p>
+                      <p
+                        class="card-subtitle font-weight-light text-muted"
+                      >{{ listing.item_condition }}</p>
                     </div>
                     <!-- card footer -->
                   </div>
@@ -46,7 +51,33 @@
             </b-tab>
             <!-- Likes Tab -->
             <b-tab title="Likes">
-              <p>I'm the second tab</p>
+              <div class="row">
+                <div
+                  class="col-md-6 col-lg-3 mb-3"
+                  v-for="liked in itemsLiked"
+                  :key="liked.fk_listing_id"
+                >
+                  <div class="card h-100">
+                    <!-- <img class="card-img-top" src=".../100px200/" alt="Card image cap"> -->
+                    <!-- card body -->
+                    <div class="card-body text-left text-dark">
+                      <p class="card-title font-weight-bold">{{liked.title}}</p>
+                      <p class="card-subtitle">S${{liked.price}}</p>
+                      <p
+                        class="card-subtitle"
+                        v-if="liked.description.length < 26"
+                      >{{ liked.description }}</p>
+                      <p
+                        v-if="liked.description.length >= 26"
+                      >{{ liked.description.substring(0,26)+".." }}</p>
+                      <p
+                        class="card-subtitle font-weight-light text-muted"
+                      >{{ liked.item_condition }}</p>
+                    </div>
+                    <!-- card footer -->
+                  </div>
+                </div>
+              </div>
             </b-tab>
           </b-tabs>
         </div>
@@ -64,7 +95,8 @@ export default {
     return {
       userinfo: null,
       userlisting: [],
-      itemsLiked: []
+      itemsLiked: [],
+      isUser: null
     };
   },
   mounted() {
@@ -73,7 +105,7 @@ export default {
   methods: {
     getUserInfo() {
       axios
-        .get("http://localhost:3000/users/" + localStorage.userid)
+        .get("http://localhost:3000/profile/" + this.$route.params.username)
         .then(result => {
           this.userinfo = result.data[0];
           this.getListingsByUser(this.userinfo.userid);
@@ -108,6 +140,19 @@ export default {
           // eslint-disable-next-line no-console
           console.error(error);
         });
+    },
+    getCreatedAt(date) {
+      let today = new Date();
+      let target = new Date(date);
+      let dayDiff = Math.round((today - target) / (1000 * 3600 * 24));
+      return dayDiff;
+    },
+    checkUser() {
+      if (parseInt(localStorage.userid) === this.userinfo.userid) {
+        this.isUser = true;
+      } else {
+        this.isUser = false;
+      }
     }
   }
 };
@@ -118,9 +163,10 @@ export default {
   height: 92vh;
 }
 
-.editprofile{
+.editprofile {
   position: absolute;
   right: 15px;
+  margin-top: -6vh;
 }
 
 .tabs {

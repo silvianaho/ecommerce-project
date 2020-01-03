@@ -65,14 +65,10 @@
                   right
                 >
                   <b-dropdown-item>
-                    <router-link class="text-dark text-decoration-none" to="/profile">Profile</router-link>
+                    <router-link class="text-dark text-decoration-none" :to="userinfo[0].username">Profile</router-link>
                   </b-dropdown-item>
-                  <b-dropdown-item>
-                    <router-link class="text-dark text-decoration-none" to="/profile">Settings</router-link>
-                  </b-dropdown-item>
-                  <b-dropdown-item>
+                  <b-dropdown-item v-on:click="logout()">
                     <router-link
-                      v-on:click="logout()"
                       class="text-dark text-decoration-none"
                       to="/"
                     >Log Out</router-link>
@@ -111,7 +107,7 @@ export default {
       userinfo: []
     };
   },
-  mounted() {
+  created() {
     this.validateToken();
     EventBus.$on("logged-in", status => {
       this.auth = status;

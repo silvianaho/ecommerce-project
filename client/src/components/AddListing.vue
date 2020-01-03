@@ -2,14 +2,24 @@
   <div class="container mt-5">
     <h2 class="font-weight-bold text-left">What are you listing today?</h2>
     <p class="text-left">Upload photos of your item or choose a category to get started.</p>
-    <form @submit.prevent="addListing()">
+    <form @submit.prevent="addListing()" enctype="multipart/form-data">
       <div class="row">
         <div class="col-md-4">
           <!-- Upload a pict -->
           <div class="card p-5">
-            <label class="btn btn-dark"> Select File
-              <input class="d-none" type="file" accept="image/jpeg" @change="onFileUpload"/>
+            <label class="btn btn-dark" v-if="newListing.picture == null">
+              Select File
+              <input
+                class="d-none"
+                type="file"
+                accept="image/jpeg"
+                @change="onFileUpload"
+                required
+              />
             </label>
+            <img v-if="newListing.picture != null" :src="picurl" class="w-100" :alt="newListing.picture.name" />
+            <p v-if="newListing.picture != null" class="w-100">{{newListing.picture.name}}</p>
+            <p class="card-title text-danger" v-if="errors.pic != undefined">{{ errors.pic }}</p>
           </div>
         </div>
         <!-- form -->
@@ -26,7 +36,7 @@
                 required
                 @click="validateToken();"
               >
-                <option value="-1" disabled selected>Select a category...</option>
+                <option value="0" disabled selected>Select a category...</option>
                 <option
                   v-for="category in categories"
                   :key="category.categoriesid"
@@ -34,7 +44,7 @@
                 >{{category.categoriestxt}}</option>
               </select>
             </div>
-            <div v-if="newListing.fk_category_id != -1">
+            <div v-if="newListing.fk_category_id != 0 || newListing.picture != null">
               <!-- title -->
               <div class="form-group">
                 <label class="h5 font-weight-bold ml-2" for="listingTitle">Listing Title</label>
@@ -125,11 +135,13 @@ export default {
         title: "",
         description: "",
         price: 0,
-        fk_category_id: -1,
+        fk_category_id: 0,
         fk_poster_id: parseInt(localStorage.userid),
         item_condition: 0,
-        picture: null
-      }
+        file: null
+      },
+      errors: {},
+      picurl: null
     };
   },
   mounted() {
@@ -169,18 +181,32 @@ export default {
         });
     },
     onFileUpload(event) {
-      this.newListing.picture = event.target.files[0];
+      if (event.target.files[0].size > 1000000) {
+        this.errors.pic = "Please attach a picture below 1MB";
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(event.target.files[0]);
+        this.picurl = URL.createObjectURL(event.target.files[0]);
+        this.errors.pic = null;
+        this.newListing.file = event.target.files[0];
+      }
     },
     addListing() {
       const formData = new FormData();
-      formData.append(this.newListing);
+      formData.append('title', this.newListing.title);
+      formData.append('description', this.newListing.description);
+      formData.append('price', this.newListing.price);
+      formData.append('fk_category_id', this.newListing.fk_category_id);
+      formData.append('fk_poster_id', this.newListing.fk_poster_id);
+      formData.append('item_condition', this.newListing.item_condition);
+      formData.append('file', this.newListing.file);
       axios
-        .post("http://localhost:3000/listings", this.newListing, {
+        .post("http://localhost:3000/listings", formData, {
           headers: {
             "Content-Type": "multipart/form-data"
           }
         })
-        .then(router.push({ name: "profile" }))
+        .then(router.push({ name: "listings" }))
         .catch(function(error) {
           // eslint-disable-next-line no-console
           console.error(error);
