@@ -8,14 +8,8 @@
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-
-### Vuejs ###
-# Recommended template: Node.gitignore
-
 dist/
 node_modules/
-npm-debug.log
-yarn-error.log
 
 # End of https://www.gitignore.io/api/node,code,vuejs
 

@@ -1,3 +1,9 @@
+/*
+Name: Silviana
+Student ID: p1939213
+Course: DIT/FT/1B/14
+*/
+
 import Vue from 'vue'
 import Router from 'vue-router'
 // @ts-ignore

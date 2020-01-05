@@ -29,6 +29,7 @@ app.use(urlencodedParser);
 app.use(jsonParser);
 app.use(cors());
 
+// Multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, path.join(__dirname, '../assets/uploads'))
@@ -57,6 +58,8 @@ const upload = multer({
         fileSize: 1000000
     }
 })
+
+// Endpoints //
 
 // 1. get all users
 app.get('/users', (req, res) => {
@@ -119,11 +122,11 @@ app.post('/users', (req, res) => {
 });
 
 // 3. get user by id
-app.get('/users/:id', (req, res) => {
-    console.log("Servicing GET /users/:id...");
+app.get('/users/:userid', (req, res) => {
+    console.log("Servicing GET /users/:userid...");
 
-    var id = req.params.id;
-    users.findUserbyID(id, (err, result) => {
+    var userid = req.params.userid;
+    users.findUserbyID(userid, (err, result) => {
         if (!err) {
             if (!result) {
                 var output = {
