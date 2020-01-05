@@ -49,7 +49,7 @@
             <div class="row">
               <div class="col-6 p-0 m-0">
                 <img
-                  v-if="userinfo[0].profile_pic_url != undefined"
+                  v-if="userinfo[0] != undefined"
                   :src="userinfo[0].profile_pic_url"
                   class="rounded-circle img-fluid"
                   width="40px"
@@ -65,13 +65,14 @@
                   right
                 >
                   <b-dropdown-item>
-                    <router-link class="text-dark text-decoration-none" :to="userinfo[0].username">Profile</router-link>
-                  </b-dropdown-item>
-                  <b-dropdown-item v-on:click="logout()">
                     <router-link
                       class="text-dark text-decoration-none"
-                      to="/"
-                    >Log Out</router-link>
+                      v-if="userinfo[0] != undefined"
+                      :to="'/user/'+userinfo[0].username"
+                    >Profile</router-link>
+                  </b-dropdown-item>
+                  <b-dropdown-item v-on:click="logout()">
+                    <router-link class="text-dark text-decoration-none" to="/">Log Out</router-link>
                   </b-dropdown-item>
                 </b-dropdown>
               </div>

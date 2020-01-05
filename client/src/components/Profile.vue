@@ -3,19 +3,23 @@
     <div class="row m-0">
       <div id="profile" class="col-3 border-right">
         <img
+          v-if="userinfo != undefined"
           :src="userinfo.profile_pic_url"
           class="mt-4 rounded-circle img-fluid"
           width="200px"
           height="200px"
           alt="profile picture"
         />
-        <p class="font-weight-bolder h4 mt-2">@{{userinfo.username}}</p>
-        <p class="font-weight-normal mt-2">
-          Joined {{getCreatedAt(userinfo.created_at)}} day<span v-if="getCreatedAt(userinfo.created_at) > 1">s</span> ago
+        <p v-if="userinfo != undefined" class="font-weight-bolder h4 mt-2">@{{userinfo.username}}</p>
+        <p v-if="userinfo != undefined" class="font-weight-normal mt-2">
+          Joined {{getCreatedAt(userinfo.created_at)}} day
+          <span
+            v-if="getCreatedAt(userinfo.created_at) > 1"
+          >s</span> ago
         </p>
       </div>
       <div class="col-9 mt-5 pt-5">
-        <button v-if="isUser = true" class="btn btn-dark editprofile">Edit Profile</button>
+        <button v-if="isUser" class="btn btn-dark editprofile">Edit Profile</button>
         <div class="user-tabs">
           <!-- tabs -->
           <b-tabs content-class="mt-3" fill>
@@ -88,6 +92,7 @@
 
 <script>
 import axios from "axios";
+import router from "../router";
 
 export default {
   name: "Profile",
@@ -96,7 +101,8 @@ export default {
       userinfo: null,
       userlisting: [],
       itemsLiked: [],
-      isUser: null
+      isUser: false,
+      ERROR: []
     };
   },
   mounted() {
@@ -110,10 +116,15 @@ export default {
           this.userinfo = result.data[0];
           this.getListingsByUser(this.userinfo.userid);
           this.getLikedPosts();
+          this.checkUser();
         })
         .catch(error => {
           // eslint-disable-next-line no-console
           console.error(error);
+          this.ERROR.push(error)
+          if (error.message === "Request failed with status code 404") {
+            router.push({ name: "notfound" });
+          }
         });
     },
     getListingsByUser(id) {

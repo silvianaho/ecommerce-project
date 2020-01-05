@@ -7,18 +7,23 @@
         <div class="col-md-4">
           <!-- Upload a pict -->
           <div class="card p-5">
-            <label class="btn btn-dark" v-if="newListing.picture == null">
+            <label class="btn btn-dark" v-if="newListing.file == null">
               Select File
               <input
                 class="d-none"
                 type="file"
                 accept="image/jpeg"
-                @change="onFileUpload"
+                @change="onFileSelect"
                 required
               />
             </label>
-            <img v-if="newListing.picture != null" :src="picurl" class="w-100" :alt="newListing.picture.name" />
-            <p v-if="newListing.picture != null" class="w-100">{{newListing.picture.name}}</p>
+            <img
+              v-if="picurl"
+              :src="picurl"
+              class="w-100"
+              :alt="newListing.file.name"
+            />
+            <p v-if="picurl" class="w-100">{{newListing.file.name}}</p>
             <p class="card-title text-danger" v-if="errors.pic != undefined">{{ errors.pic }}</p>
           </div>
         </div>
@@ -44,7 +49,7 @@
                 >{{category.categoriestxt}}</option>
               </select>
             </div>
-            <div v-if="newListing.fk_category_id != 0 || newListing.picture != null">
+            <div v-if="newListing.fk_category_id != 0 || newListing.file != null">
               <!-- title -->
               <div class="form-group">
                 <label class="h5 font-weight-bold ml-2" for="listingTitle">Listing Title</label>
@@ -95,6 +100,7 @@
                     placeholder="Price"
                     v-model="newListing.price"
                     min="0"
+                    step="0.01"
                   />
                 </div>
               </div>
@@ -180,26 +186,33 @@ export default {
           console.error(error);
         });
     },
-    onFileUpload(event) {
-      if (event.target.files[0].size > 1000000) {
-        this.errors.pic = "Please attach a picture below 1MB";
+    onFileSelect(event) {
+      var jpgExtension = new RegExp(/(.*)\.jpg/i);
+      var file = event.target.files[0];
+
+      if (file.size > 1000000 || !jpgExtension.test(file.name)) {
+        this.errors.pic = "Please attach a .jpg file below 1MB";
       } else {
         // eslint-disable-next-line no-console
+        console.log(event);
+        // eslint-disable-next-line no-console
         console.log(event.target.files[0]);
+        // eslint-disable-next-line no-console
+        console.log(URL.createObjectURL(event.target.files[0]))
         this.picurl = URL.createObjectURL(event.target.files[0]);
         this.errors.pic = null;
         this.newListing.file = event.target.files[0];
       }
     },
-    addListing() {
+    async addListing() {
       const formData = new FormData();
-      formData.append('title', this.newListing.title);
-      formData.append('description', this.newListing.description);
-      formData.append('price', this.newListing.price);
-      formData.append('fk_category_id', this.newListing.fk_category_id);
-      formData.append('fk_poster_id', this.newListing.fk_poster_id);
-      formData.append('item_condition', this.newListing.item_condition);
-      formData.append('file', this.newListing.file);
+      formData.append("title", this.newListing.title);
+      formData.append("description", this.newListing.description);
+      formData.append("price", this.newListing.price);
+      formData.append("fk_category_id", this.newListing.fk_category_id);
+      formData.append("fk_poster_id", this.newListing.fk_poster_id);
+      formData.append("item_condition", this.newListing.item_condition);
+      formData.append("file", this.newListing.file);
       axios
         .post("http://localhost:3000/listings", formData, {
           headers: {

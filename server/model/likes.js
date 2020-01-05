@@ -20,7 +20,7 @@ var likesDB = {
                 listings AS ls,
                 users AS u
             WHERE 
-                lk.fk_listing_id = ? AND 
+                lk.fk_listing_id=? AND 
                 ls.listingsid=lk.fk_listing_id AND
                 u.userid = lk.fk_liker_id;`;
 
@@ -40,7 +40,7 @@ var likesDB = {
                 listings AS ls,
                 users AS u
             WHERE 
-                lk.fk_liker_id = 2 AND 
+                lk.fk_liker_id=? AND 
                 ls.listingsid=lk.fk_listing_id AND
                 u.userid = lk.fk_liker_id;`
 

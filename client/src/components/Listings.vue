@@ -4,7 +4,7 @@
     <div class="row">
       <div class="col-md-6 col-lg-3 mb-3" v-for="listing in listings" :key="listing.listingsid">
         <div class="card h-100">
-          <!-- <img class="card-img-top" src=".../100px200/" alt="Card image cap"> -->
+          <img class="card-img-top" :src="getImage(listing.listingsid)" alt="Card image cap" />
           <!-- card body -->
           <div class="card-body">
             <h5 class="card-title">{{listing.title}}</h5>
@@ -38,6 +38,7 @@
 
 <script>
 import axios from "axios";
+// import path from "path";
 
 export default {
   name: "listings",
@@ -57,14 +58,21 @@ export default {
     getListings() {
       axios.get("http://localhost:3000/listings").then(result => {
         this.listings = result.data;
-        /* get listings liked by current user */
+        // map all filenames to a filepaths array
+        let filepaths = result.data.map(data => {
+          "../../server/assets/uploads" + data.filename;
+        });
+        // eslint-disable-next-line no-console
+        console.log(filepaths);
+        // eslint-disable-next-line no-console
+        // console.log(result.data[0].filename + "meow");
+
         // have to use Vue.set because of JS limitations
         this.listings.map((listings, listingsid) => {
+          /* get listings liked by current user */
           axios
             .get(
-              "http://localhost:3000/users/" +
-                localStorage.userid +
-                "/likes"
+              "http://localhost:3000/users/" + localStorage.userid + "/likes"
             )
             .then(resultUL => {
               for (let i = 0; i < this.listings.length; i++) {
@@ -118,6 +126,19 @@ export default {
           // eslint-disable-next-line no-console
           console.log(result);
           // this.listings.liked = true;
+        })
+        .catch(error => {
+          // eslint-disable-next-line no-console
+          console.error(error);
+        });
+    },
+    getImage(listingsid) {
+      return axios
+        .get("http://localhost:3000/listings/" + listingsid + "/picture", {
+          responseType: "arraybuffer"
+        })
+        .then(result => {
+          Buffer.from(result.data, 'binary').toString('base64')
         })
         .catch(error => {
           // eslint-disable-next-line no-console

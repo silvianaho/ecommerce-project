@@ -32,7 +32,7 @@ var usersDB = {
             }
         })
     },
-    // 2.5. insert password to another table
+    // Extra: insert password to another table
     insertPwd: (data, callback) => {
         var sqlstring = `INSERT INTO usercreds (userid, email, password) VALUES (?, ?, ?)`;
         var values = [
@@ -68,9 +68,10 @@ var usersDB = {
         })
     },
 
+    // Extra: get user credentials from usercreds table by id
     findUserbyIDcreds: (id, callback) => {
         var sqlstring = "SELECT * FROM usercreds WHERE userid=?";
-
+        
         db.connection.query(sqlstring, id, (err, result) => {
             if (err) {
                 console.log(err);
@@ -84,7 +85,8 @@ var usersDB = {
             }
         })
     },
-
+    
+    // Extra: get userinfo from users table by username (case sensitive, absolute)
     findUserbyUsername: (username, callback) => {
         var sqlstring = "SELECT * FROM users WHERE username=?";
 
@@ -139,6 +141,7 @@ var usersDB = {
         })
     },
 
+    // Extra: update user credentials
     updateCreds: (data, callback) => {
         var sqlstring = "UPDATE usercreds SET email=?, password=? WHERE userid=?";
 

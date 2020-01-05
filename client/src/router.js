@@ -8,6 +8,8 @@ import AddListing from './components/AddListing';
 import LogIn from './components/LogIn';
 // @ts-ignore
 import Profile from './components/Profile';
+// @ts-ignore
+import NotFound from './components/NotFound';
 
 
 Vue.use(Router)
@@ -30,8 +32,13 @@ const routes = [
     },
     {
         name: 'profile',
-        path: '/:username',
+        path: '/user/:username',
         component: Profile
+    },
+    {
+        name: 'notfound',
+        path: '/notfound',
+        component: NotFound
     },
 ]
 

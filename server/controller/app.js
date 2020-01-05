@@ -9,10 +9,10 @@ const app = express();
 
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const jwt = require('jsonwebtoken')
-const bcrypt = require('bcryptjs')
-const multer = require('multer')
-
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const multer = require('multer');
+const path = require('path');
 
 const users = require('../model/users');
 const listings = require('../model/listings');
@@ -22,63 +22,40 @@ const likes = require('../model/likes');
 
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 var jsonParser = bodyParser.json()
+var jpgExtension = new RegExp(/(.*)\.jpg/i);
 
 app.use(urlencodedParser);
 app.use(jsonParser);
 app.use(cors());
 
-const fileFilter = (req, file, callback) => {
-    const allowedType = ["image/jpg"];
-    if (!allowedType.includes(file.mimetype)) {
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, '../assets/uploads'))
+    },
+    filename: function (req, file, cb) {
+        console.log("file", file);
+        let fileExtension = file.originalname.split('.')[file.originalname.split('.').length - 1]
+        let name = file.fieldname + '-' + Date.now() + '.' + fileExtension
+        cb(null, name)
+    }
+})
+
+const fileFilter = (req, file, cb) => {
+    if (!jpgExtension.test(file.originalname)) {
         const error = new Error("Incorrect file type");
         error.name = "INCORRECT_FILETYPE";
-        callback(error, false)
+        return cb(error, false)
     }
-    else{
-        callback(null, true);
-    }
+    cb(null, true);
 
 }
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, __dirname + '/assets/uploads')
-    },
-    filename: function (req, file, cb) {
-      console.log("file",file);  
-      let fileExtension = file.originalname.split('.')[1]
-      cb(null, file.fieldname + '-' + Date.now()+'.'+fileExtension)
-    }
-  })
-
 const upload = multer({
     storage: storage,
-    // fileFilter,
-    // limits: {
-    //     fileSize: 1000000
-    // }
+    fileFilter
 })
 
-/* app.use((err, req, res, next) => {
-    console.log("meow");
-    if (err.code === "INCORRECT_FILETYPE") {
-        console.log(err);
 
-        let output = {
-            error: "Only .jpg images are allowed"
-        }
-        res.status(422).type("json").send(output);
-        return;
-    }
-    if (err.code === "LIMIT_FILE_SIZE") {
-        let output = {
-            error: "Maximum file size allowed is 1MB."
-        }
-        res.status(422).type("json").send(output)
-        return;
-
-    }
-}) */
 
 // 1. get all users
 app.get('/users', (req, res) => {
@@ -232,6 +209,9 @@ app.get('/listings', (req, res) => {
     console.log("Servicing GET /listings...");
 
     listings.allListings((err, result) => {
+        for (const item of result) {
+            item.fileinfo = JSON.parse(item.fileinfo)
+        }
         if (!err) {
             res.status(200).type("json").send(JSON.stringify(result));
         }
@@ -264,8 +244,9 @@ app.get('/listings/:listing_id', (req, res) => {
 });
 
 // 8. add new listing
-app.post('/listings', (req, res) => {
+app.post('/listings', upload.single('file'), (req, res) => {
     console.log("Servicing POST /listings...");
+    console.log(req.file);
 
     var data = {
         title: req.body.title,
@@ -274,12 +255,14 @@ app.post('/listings', (req, res) => {
         fk_poster_id: req.body.fk_poster_id,
         fk_category_id: req.body.fk_category_id,
         item_condition: req.body.item_condition,
+        filename: req.file.filename,
+        fileinfo: JSON.stringify(req.file)
     }
 
     listings.addListing(data, (err, result) => {
         if (!err) {
             var output = {
-                "listingID": result.insertId
+                "listingID": result.insertId,
             }
             res.status(201).type("json").send(JSON.stringify(output));
         } else {
@@ -305,16 +288,16 @@ app.delete('/listings/:id', (req, res) => {
 })
 
 // 10. update a listing
-app.put('/listings/:id', (req, res) => {
+app.put('/listings/:id', upload.single('file'), (req, res) => {
     console.log("Servicing PUT /listings/:id...");
 
     var data = {
         title: req.body.title,
         description: req.body.description,
         price: req.body.price,
-        fk_poster_id: req.body.fk_poster_id,
         category: req.body.category,
-        discount: req.body.discount,
+        filename: req.file.filename,
+        fileinfo: JSON.stringify(req.file),
         listingsid: req.params.id
     }
 
@@ -544,13 +527,76 @@ app.get('/profile/:username', (req, res) => {
     })
 });
 
-app.post('/upload', upload.single('file'), (req, res) => {
-    console.log("Servicing POST /upload...");
+// 21. get a picture
+app.get('/listings/:listingsid/picture', (req, res) => {
+    console.log("Servicing GET /listings/:listingsid/picture...");
+    let id = req.params.listingsid;
 
-    if(req.file) {
-        res.json(req.file);
+    listings.pictureById(id, (err, result) => {
+        if (!err) {
+            if (!result) {
+                var output = {
+                    "message": "Listing does not exist."
+                }
+                res.status(404).type("json").send(JSON.stringify(output));
+            } else {
+                let filepath1 = path.join(__dirname, "../assets/uploads", result[0].filename)
+                console.log(id)
+                res.status(200).sendFile(filepath1)
+            }
+        }
+        else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
+});
+
+// 22. Listings for Front End (WIP0)
+app.get('/:userid/fe/listings', (req, res) => {
+    console.log("Servicing GET /:userid/fe/listings...");
+
+    let data = {
+        userid: req.params.userid,
     }
-    else throw 'error';
+
+    listings.allListings((l_err, l_result) => {
+        likes.listingLikedByUser(data.userid, (ul_err, ul_result) => {
+            var likecount = []
+            for (const item of l_result) {
+                for (const liked of ul_result) {
+                    if (item.listingsid === liked.listingsid) {
+                        item.liked = true
+                    }
+                }
+            }
+            for (const item of l_result) {
+                likes.usersWhoLikedThis(item.listingsid, (ll_err, ll_result) => {
+                    likecount.push(ll_result.length)
+                })
+            }
+            console.log(likecount);
+            res.json(l_result)
+        })
+    })
+
+})
+
+app.use((err, req, res, next) => {
+    if (err.name === "INCORRECT_FILETYPE") {
+        let output = {
+            error: "Only .jpg images are allowed"
+        }
+        res.status(422).type("json").send(output);
+        return;
+    }
+    if (err.code === 'LIMIT_FILE_SIZE') {
+        let output = {
+            error: "Maximum file size allowed is 1MB."
+        }
+        res.status(422).type("json").send(output)
+        return;
+
+    }
 })
 
 
