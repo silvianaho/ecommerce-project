@@ -13,6 +13,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs')
 
 const users = require('../model/users');
 const listings = require('../model/listings');
@@ -34,7 +35,7 @@ const storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         console.log("file", file);
-        let fileExtension = file.originalname.split('.')[file.originalname.split('.').length - 1]
+        let fileExtension = file.originalname.split('.').pop()
         let name = file.fieldname + '-' + Date.now() + '.' + fileExtension
         cb(null, name)
     }
@@ -52,10 +53,11 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
     storage: storage,
-    fileFilter
+    fileFilter,
+    limits: {
+        fileSize: 1000000
+    }
 })
-
-
 
 // 1. get all users
 app.get('/users', (req, res) => {
@@ -209,9 +211,6 @@ app.get('/listings', (req, res) => {
     console.log("Servicing GET /listings...");
 
     listings.allListings((err, result) => {
-        for (const item of result) {
-            item.fileinfo = JSON.parse(item.fileinfo)
-        }
         if (!err) {
             res.status(200).type("json").send(JSON.stringify(result));
         }
@@ -256,7 +255,9 @@ app.post('/listings', upload.single('file'), (req, res) => {
         fk_category_id: req.body.fk_category_id,
         item_condition: req.body.item_condition,
         filename: req.file.filename,
-        fileinfo: JSON.stringify(req.file)
+        filesize: req.file.size,
+        filetype: req.file.mimetype,
+        fileencoding: req.file.encoding,
     }
 
     listings.addListing(data, (err, result) => {
@@ -488,7 +489,7 @@ app.post('/listings/:listingid/likes', (req, res) => {
 
 // 19. Unlike a listing
 app.delete('/listings/:listingid/likes', (req, res) => {
-    console.log("Servicing POST /listings/:listingid/likes...");
+    console.log("Servicing DELETE /listings/:listingid/likes...");
 
     var data = {
         listingid: req.params.listingid,
@@ -540,9 +541,14 @@ app.get('/listings/:listingsid/picture', (req, res) => {
                 }
                 res.status(404).type("json").send(JSON.stringify(output));
             } else {
-                let filepath1 = path.join(__dirname, "../assets/uploads", result[0].filename)
-                console.log(id)
-                res.status(200).sendFile(filepath1)
+                let imagename = result[0].filename;
+                let imageStream = fs.createReadStream(`./assets/uploads/${imagename}`)
+                res.contentType('image/jpg');
+                imageStream.pipe(res);
+
+                // 2nd method:
+                // let filepath = path.join(__dirname, "../assets/uploads", result[0].filename)                
+                // res.status(200).contentType("jpg").sendFile(filepath)
             }
         }
         else {
@@ -551,7 +557,7 @@ app.get('/listings/:listingsid/picture', (req, res) => {
     })
 });
 
-// 22. Listings for Front End (WIP0)
+// 22. Listings for Front End (Loggedin user)
 app.get('/:userid/fe/listings', (req, res) => {
     console.log("Servicing GET /:userid/fe/listings...");
 
@@ -559,24 +565,39 @@ app.get('/:userid/fe/listings', (req, res) => {
         userid: req.params.userid,
     }
 
-    listings.allListings((l_err, l_result) => {
+    listings.allListingsFE((l_err, l_result) => {
         likes.listingLikedByUser(data.userid, (ul_err, ul_result) => {
-            var likecount = []
-            for (const item of l_result) {
-                for (const liked of ul_result) {
-                    if (item.listingsid === liked.listingsid) {
-                        item.liked = true
+            if (!l_err || !ul_err) {
+                for (const item of l_result) {
+                    for (const liked of ul_result) {
+                        if (item.listingsid === liked.listingsid) {
+                            item.liked = true
+                        }
                     }
                 }
+                res.status(200).type("json").send(l_result)
             }
-            for (const item of l_result) {
-                likes.usersWhoLikedThis(item.listingsid, (ll_err, ll_result) => {
-                    likecount.push(ll_result.length)
-                })
+            else {
+                let output = {
+                    l_err,
+                    ul_err
+                }
+                res.status(500).type("json").send(output)
             }
-            console.log(likecount);
-            res.json(l_result)
         })
+
+    })
+})
+
+// 23. Listings for Front End (Loggedout user)
+app.get('/fe/listings', (req, res) => {
+    console.log("Servicing GET /fe/listings...");
+    listings.allListingsFE((err, result) => {
+        if (!err) {
+            res.status(200).type("json").send(result)
+        } else {
+            res.status(500).type("json").send(err)
+        }
     })
 
 })

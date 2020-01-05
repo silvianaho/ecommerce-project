@@ -184,6 +184,7 @@ export default {
         .then(result => {
           // eslint-disable-next-line no-console
           console.log(result);
+          location.reload();
         })
         .catch(error => {
           // eslint-disable-next-line no-console

@@ -72,8 +72,8 @@ var likesDB = {
     unlikeAListing: (data, callback) => {
         var sqlstring = "DELETE FROM likes WHERE fk_listing_id=? AND fk_liker_id=?";
         var values = [
-            data.userid,
-            data.listingid
+            data.listingid,
+            data.userid
         ]
 
         db.connection.query(sqlstring, values, (err, result) => {

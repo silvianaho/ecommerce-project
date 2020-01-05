@@ -17,12 +17,7 @@
                 required
               />
             </label>
-            <img
-              v-if="picurl"
-              :src="picurl"
-              class="w-100"
-              :alt="newListing.file.name"
-            />
+            <img v-if="picurl" :src="picurl" class="w-100" :alt="newListing.file.name" />
             <p v-if="picurl" class="w-100">{{newListing.file.name}}</p>
             <p class="card-title text-danger" v-if="errors.pic != undefined">{{ errors.pic }}</p>
           </div>
@@ -198,7 +193,7 @@ export default {
         // eslint-disable-next-line no-console
         console.log(event.target.files[0]);
         // eslint-disable-next-line no-console
-        console.log(URL.createObjectURL(event.target.files[0]))
+        console.log(URL.createObjectURL(event.target.files[0]));
         this.picurl = URL.createObjectURL(event.target.files[0]);
         this.errors.pic = null;
         this.newListing.file = event.target.files[0];
@@ -219,7 +214,11 @@ export default {
             "Content-Type": "multipart/form-data"
           }
         })
-        .then(router.push({ name: "listings" }))
+        .then(result => {
+          // eslint-disable-next-line no-console
+          console.log(result)
+          this.$nextTick(router.push({ name: "listings" }));
+        })
         .catch(function(error) {
           // eslint-disable-next-line no-console
           console.error(error);

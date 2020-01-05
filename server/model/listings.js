@@ -56,7 +56,7 @@ var listingsDB = {
 
     // 8. add new listing
     addListing: (data, callback) => {
-        var sqlstring = "INSERT INTO listings (title, description, price, fk_poster_id, fk_category_id, item_condition, filename, fileinfo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        var sqlstring = "INSERT INTO listings (title, description, price, fk_poster_id, fk_category_id, item_condition, filename, filesize, filetype, fileencoding) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         var values = [
             data.title,
             data.description,
@@ -65,7 +65,9 @@ var listingsDB = {
             data.fk_category_id,
             data.item_condition,
             data.filename,
-            data.fileinfo
+            data.filesize,    
+            data.filetype,    
+            data.fileencoding,
         ];
 
         db.connection.query(sqlstring, values, (err, result) => {
@@ -98,7 +100,7 @@ var listingsDB = {
 
     // 10. update a listing
     updateListing: (data, callback) => {
-        var sqlstring = "UPDATE listings SET title=?, description=?, price=?, fk_category_id=?, filename=?, fileinfo=? WHERE listingsid=?";
+        var sqlstring = "UPDATE listings SET title=?, description=?, price=?, fk_category_id=?, filename=?, filesize=?, filetype=?, fileencoding=? WHERE listingsid=?";
 
         listingsDB.findListingbyID(data.listingsid, (err, result) => {
             if (data.title === "") {
@@ -116,8 +118,14 @@ var listingsDB = {
             if (data.filename === "") {
                 data.filename = result[0].filename;
             };
-            if (data.fileinfo === "") {
-                data.fileinfo = result[0].fileinfo;
+            if (data.filesize === "") {
+                data.filesize = result[0].filesize;
+            };
+            if (data.filetype === "") {
+                data.filetype = result[0].filetype;
+            };
+            if (data.fileencoding === "") {
+                data.fileencoding = result[0].fileencoding;
             };
 
             var values = [
@@ -127,7 +135,9 @@ var listingsDB = {
                 data.category,
                 data.listingsid,
                 data.filename,
-                data.fileinfo
+                data.filesize,    
+                data.filetype,    
+                data.fileencoding,
             ];
 
 
@@ -164,6 +174,19 @@ var listingsDB = {
         })
     },
 
+    // for front end
+    allListingsFE: (callback) => {
+        var sqlstring = "SELECT l.*, u.username FROM snapsell.listings AS l, snapsell.users AS u WHERE u.userid = l.fk_poster_id;";
+
+        db.connection.query(sqlstring, [], (err, result) => {
+            if (err) {
+                console.log(err);
+                return callback(err, null);
+            } else {
+                return callback(null, result);
+            }
+        })
+    },
 };
 
 module.exports = listingsDB;

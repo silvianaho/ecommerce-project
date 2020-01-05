@@ -13,9 +13,7 @@
         <p v-if="userinfo != undefined" class="font-weight-bolder h4 mt-2">@{{userinfo.username}}</p>
         <p v-if="userinfo != undefined" class="font-weight-normal mt-2">
           Joined {{getCreatedAt(userinfo.created_at)}} day
-          <span
-            v-if="getCreatedAt(userinfo.created_at) > 1"
-          >s</span> ago
+          <span v-if="getCreatedAt(userinfo.created_at) > 1">s</span> ago
         </p>
       </div>
       <div class="col-9 mt-5 pt-5">
@@ -32,7 +30,13 @@
                   :key="listing.listingsid"
                 >
                   <div class="card h-100">
-                    <!-- <img class="card-img-top" src=".../100px200/" alt="Card image cap"> -->
+                    <div class="thumbnail">
+                      <img
+                        class="mx-auto card-img-top listingimg"
+                        :src="getImage(listing.listingsid)"
+                        alt="Card image cap"
+                      />
+                    </div>
                     <!-- card body -->
                     <div class="card-body text-left text-dark">
                       <p class="card-title font-weight-bold">{{listing.title}}</p>
@@ -101,8 +105,7 @@ export default {
       userinfo: null,
       userlisting: [],
       itemsLiked: [],
-      isUser: false,
-      ERROR: []
+      isUser: false
     };
   },
   mounted() {
@@ -121,7 +124,7 @@ export default {
         .catch(error => {
           // eslint-disable-next-line no-console
           console.error(error);
-          this.ERROR.push(error)
+          this.ERROR.push(error);
           if (error.message === "Request failed with status code 404") {
             router.push({ name: "notfound" });
           }
@@ -131,9 +134,6 @@ export default {
       axios
         .get("http://localhost:3000/users/" + id + "/listings")
         .then(result => {
-          // eslint-disable-next-line no-console
-          console.log(result.data);
-
           this.userlisting = result.data;
         })
         .catch(error => {
@@ -143,7 +143,7 @@ export default {
     },
     getLikedPosts() {
       axios
-        .get("http://localhost:3000/users/" + this.userid + "/likes")
+        .get("http://localhost:3000/users/" + this.userinfo.userid + "/likes")
         .then(result => {
           this.itemsLiked = result.data;
         })
@@ -164,6 +164,9 @@ export default {
       } else {
         this.isUser = false;
       }
+    },
+    getImage(listingsid) {
+      return "http://localhost:3000/listings/" + listingsid + "/picture";
     }
   }
 };
@@ -185,6 +188,24 @@ export default {
   .row {
     &:focus {
       outline: 0;
+    }
+  }
+}
+
+.thumbnail {
+  position: relative;
+  height: 200px;
+  width: 100%;
+  overflow: hidden;
+  img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100%;
+    transform: translate(-50%, -50%);
+    .listingimg {
+      width: 100%;
+      height: auto;
     }
   }
 }

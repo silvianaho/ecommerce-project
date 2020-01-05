@@ -71,7 +71,7 @@
                       :to="'/user/'+userinfo[0].username"
                     >Profile</router-link>
                   </b-dropdown-item>
-                  <b-dropdown-item v-on:click="logout()">
+                  <b-dropdown-item v-on:click="logout(); reload()">
                     <router-link class="text-dark text-decoration-none" to="/">Log Out</router-link>
                   </b-dropdown-item>
                 </b-dropdown>
@@ -132,6 +132,9 @@ export default {
       this.auth = "";
       this.userid = null;
       this.token = null;
+    },
+    reload(){
+      location.reload()
     },
     toggleNavbar() {
       this.showNav = !this.showNav;

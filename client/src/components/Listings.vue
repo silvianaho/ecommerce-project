@@ -4,7 +4,13 @@
     <div class="row">
       <div class="col-md-6 col-lg-3 mb-3" v-for="listing in listings" :key="listing.listingsid">
         <div class="card h-100">
-          <img class="card-img-top" :src="getImage(listing.listingsid)" alt="Card image cap" />
+          <div class="thumbnail">
+            <img
+              class="mx-auto card-img-top listingimg"
+              :src="getImage(listing.listingsid)"
+              alt="Card image cap"
+            />
+          </div>
           <!-- card body -->
           <div class="card-body">
             <h5 class="card-title">{{listing.title}}</h5>
@@ -18,17 +24,31 @@
           </div>
           <!-- card footer -->
           <div class="card-footer text-left">
-            <button class="hidedefbtn" type="button" @click="likeUnlike(listing.listingsid)">
+            <button
+              class="hidedefaultbtn"
+              v-if="listing.liked == true"
+              type="button"
+              @click="unlikeListing(listing)"
+            >
               <small>
-                <font-awesome-icon
-                  v-if="listing.liked == 1"
-                  class="text-danger"
-                  :icon="['fas', 'heart']"
-                />
-                <font-awesome-icon v-else :icon="['far', 'heart']" />
+                <font-awesome-icon class="text-danger" :icon="['fas', 'heart']" />
               </small>
             </button>
-            <small class="ml-1">{{ listing.likeCount }}</small>
+            <button
+              class="hidedefaultbtn"
+              v-else
+              type="button"
+              @click="likeListing(listing)"
+            >
+              <small>
+                <font-awesome-icon :icon="['far', 'heart']" />
+              </small>
+            </button>
+            <small class="ml-1">{{listing.likeCount}}</small>
+            <small class="ml-1">
+              Posted by:
+              <router-link :to="'/user/' + listing.username">{{listing.username}}</router-link>
+            </small>
           </div>
         </div>
       </div>
@@ -38,7 +58,7 @@
 
 <script>
 import axios from "axios";
-// import path from "path";
+import router from "../router";
 
 export default {
   name: "listings",
@@ -46,86 +66,128 @@ export default {
     return {
       listings: [],
       likeForm: {
-        fk_listing_id: null,
-        fk_liker_id: null
-      }
+        userid: null
+      },
+      likecount: []
     };
   },
   mounted() {
     this.getListings();
   },
   methods: {
-    getListings() {
-      axios.get("http://localhost:3000/listings").then(result => {
-        this.listings = result.data;
-        // map all filenames to a filepaths array
-        let filepaths = result.data.map(data => {
-          "../../server/assets/uploads" + data.filename;
-        });
-        // eslint-disable-next-line no-console
-        console.log(filepaths);
-        // eslint-disable-next-line no-console
-        // console.log(result.data[0].filename + "meow");
-
-        // have to use Vue.set because of JS limitations
-        this.listings.map((listings, listingsid) => {
-          /* get listings liked by current user */
-          axios
-            .get(
-              "http://localhost:3000/users/" + localStorage.userid + "/likes"
-            )
-            .then(resultUL => {
-              for (let i = 0; i < this.listings.length; i++) {
-                for (let j = 0; j < resultUL.data.length; j++) {
-                  if (
-                    resultUL.data[j].listingsid === this.listings[i].listingsid
-                  ) {
-                    this.listings[i].liked = 1;
-                  } else {
-                    this.listings[i].liked = 0;
-                  }
-                }
-
-                /* get the number of likes for each listing */
-                this.listings.map((listings, listingsid) => {
-                  axios
-                    .get(
-                      "http://localhost:3000/listings/" +
-                        this.listings[i].listingsid +
-                        "/likes"
-                    )
-                    .then(resultNL => {
-                      // eslint-disable-next-line no-console
-                      this.listings[i].likers = resultNL.data.likers;
-                      this.listings[i].likeCount = resultNL.data.likeCount;
-                      this.$set(
-                        this.listings,
-                        listingsid,
-                        JSON.parse(JSON.stringify(listings))
-                      );
-                    });
-                });
-              }
-              this.$set(
-                this.listings,
-                listingsid,
-                JSON.parse(JSON.stringify(listings))
-              );
-            });
-        });
-      });
-    },
-    likeUnlike(id) {
-      // eslint-disable-next-line no-console
-      console.log(id);
-      this.likeForm.fk_listing_id = id;
-      this.likeForm.fk_liker_id = localStorage.userid;
+    validateToken() {
+      let config = {
+        headers: {
+          authorization: "Bearer " + localStorage.usertoken
+        }
+      };
       axios
-        .post("http://localhost:3000/listings/" + id + "/likes", this.likeForm)
+        .post("http://localhost:3000/validate", null, config)
         .then(result => {
           // eslint-disable-next-line no-console
           console.log(result);
-          // this.listings.liked = true;
+        })
+        .catch(err => {
+          // eslint-disable-next-line no-console
+          console.error(err);
+          router.push({ name: "login" });
+        });
+    },
+    getListings() {
+      if (localStorage.userid) {
+        axios
+          .get("http://localhost:3000/" + localStorage.userid + "/fe/listings/")
+          .then(result => {
+            this.listings = result.data;
+
+            // map the likecounts to this.listings
+            this.listings.map((listing, index) => {
+              axios
+                .get(
+                  "http://localhost:3000/listings/" +
+                    listing.listingsid +
+                    "/likes"
+                )
+                .then(lc_result => {
+                  listing.likeCount = lc_result.data.likeCount;
+                  this.$set(
+                    this.listings,
+                    index,
+                    JSON.parse(JSON.stringify(listing))
+                  );
+                })
+                .catch(lc_error => {
+                  // eslint-disable-next-line no-console
+                  console.error(lc_error);
+                });
+            });
+          })
+          .catch(error => {
+            // eslint-disable-next-line no-console
+            console.error(error);
+          });
+      } else {
+        axios
+          .get("http://localhost:3000/fe/listings/")
+          .then(result => {
+            this.listings = result.data;
+            // map the likecounts to this.listings
+            this.listings.map((listing, index) => {
+              axios
+                .get(
+                  "http://localhost:3000/listings/" +
+                    listing.listingsid +
+                    "/likes"
+                )
+                .then(lc_result => {
+                  listing.likeCount = lc_result.data.likeCount;
+                  this.$set(
+                    this.listings,
+                    index,
+                    JSON.parse(JSON.stringify(listing))
+                  );
+                })
+                .catch(lc_error => {
+                  // eslint-disable-next-line no-console
+                  console.error(lc_error);
+                });
+            });
+          })
+          .catch(error => {
+            // eslint-disable-next-line no-console
+            console.error(error);
+          });
+      }
+    },
+    likeListing(listing) {
+      this.validateToken();
+      this.likeForm.userid = parseInt(localStorage.userid);
+      axios
+        .post("http://localhost:3000/listings/" + listing.listingsid + "/likes", this.likeForm)
+        .then(result => {
+          // eslint-disable-next-line no-console
+          console.log(result);
+          this.$set(listing, 'liked', true)
+          this.$nextTick(listing.likeCount++)
+        })
+        .catch(error => {
+          // eslint-disable-next-line no-console
+          console.error(error);
+        });
+    },
+    unlikeListing(listing) {
+      this.validateToken();
+      this.likeForm.userid = parseInt(localStorage.userid);
+      axios
+        .delete(
+          "http://localhost:3000/listings/" + listing.listingsid + "/likes",
+          {data: this.likeForm}
+        )
+        .then(result => {
+          // eslint-disable-next-line no-console
+          console.log(result);
+          this.$nextTick(listing.liked = false)
+          this.$nextTick(listing.likeCount--)
         })
         .catch(error => {
           // eslint-disable-next-line no-console
@@ -133,28 +195,18 @@ export default {
         });
     },
     getImage(listingsid) {
-      return axios
-        .get("http://localhost:3000/listings/" + listingsid + "/picture", {
-          responseType: "arraybuffer"
-        })
-        .then(result => {
-          Buffer.from(result.data, 'binary').toString('base64')
-        })
-        .catch(error => {
-          // eslint-disable-next-line no-console
-          console.error(error);
-        });
+      return "http://localhost:3000/listings/" + listingsid + "/picture";
     }
   }
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .card {
   height: 20vh;
 }
 
-.hidedefbtn {
+.hidedefaultbtn {
   background: none;
   color: inherit;
   border: none;
@@ -162,5 +214,23 @@ export default {
   font: inherit;
   cursor: pointer;
   outline: inherit;
+}
+
+.thumbnail {
+  position: relative;
+  height: 200px;
+  width: 100%;
+  overflow: hidden;
+  img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100%;
+    transform: translate(-50%, -50%);
+    .listingimg {
+      width: 100%;
+      height: auto;
+    }
+  }
 }
 </style>
