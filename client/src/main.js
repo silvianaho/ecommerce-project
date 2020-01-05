@@ -1,3 +1,9 @@
+/*
+Name: Silviana
+Student ID: p1939213
+Course: DIT/FT/1B/14
+*/
+
 import Vue from 'vue';
 import App from './App.vue';
 import router from './router';

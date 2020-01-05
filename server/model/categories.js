@@ -12,10 +12,24 @@ var categoriesDB = {
 
         db.connection.query(sqlstring, [], (err, result) => {
             if (err) {
-                console.log(err);
                 return callback(err, null);
             } else {
                 return callback(null, result);
+            }
+        })
+    },
+    getListingsByCat: (category, callback) => {
+        var sqlstring = 'SELECT * FROM listings WHERE fk_category_id=?';
+
+        db.connection.query(sqlstring, category, (err, result) => {
+            if (!err) {
+                if (!result) {
+                    return callback(null, null)
+                } else {
+                    return callback(null, result)
+                }
+            } else {
+                return callback(err, null)
             }
         })
     }

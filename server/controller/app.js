@@ -85,38 +85,44 @@ app.post('/users', (req, res) => {
         password: req.body.password
     }
 
-    bcrypt.hash(req.body.password, 10, (err, hash) => {
-        data.password = hash
-        users.addUser(data, (err, result) => {
-            if (!err) {
-                let cred = {
-                    userid: result.insertId,
-                    email: req.body.email,
-                    password: hash,
-                }
-                users.insertPwd(cred, (pwderr, pwdresult) => {
-                    if (!pwderr) {
-                        var output = {
-                            "userID": result.insertId,
+    bcrypt.hash(req.body.password, 10, (bc_err, hash) => {
+        if (!bc_err) {
+            data.password = hash
+            console.log(data.password)
+            users.addUser(data, (err, result) => {
+                if (!err) {
+                    let cred = {
+                        userid: result.insertId,
+                        email: req.body.email,
+                        password: hash,
+                    }
+                    users.insertPwd(cred, (pwderr, pwdresult) => {
+                        if (!pwderr) {
+                            var output = {
+                                "userID": result.insertId,
+                            }
+                            res.status(201).type("json").send(JSON.stringify(output));
                         }
-                        res.status(201).type("json").send(JSON.stringify(output));
-                    }
-                    else {
-                        res.status(500).type("json").send(JSON.stringify({ err, pwderr }));
-                    }
-                })
-            } else {
-                if (err.errno === 1062) {
-                    let output = {
-                        err,
-                        error: "This Username/Email is Taken.",
-                    }
-                    res.status(422).type("json").send(JSON.stringify(output));
+                        else {
+                            res.status(500).type("json").send(JSON.stringify({ err, pwderr }));
+                            return false;
+                        }
+                    })
                 } else {
-                    res.status(500).type("json").send(JSON.stringify(err));
+                    if (err.errno === 1062) {
+                        let output = {
+                            err,
+                            error: "This Username/Email is Taken.",
+                        }
+                        res.status(422).type("json").send(JSON.stringify(output));
+                    } else {
+                        res.status(500).type("json").send(JSON.stringify(err));
+                    }
                 }
-            }
-        })
+            })
+        } else {
+            res.status(500).type("json").send(JSON.stringify(bc_err));
+        }
     })
 
 });
@@ -155,32 +161,36 @@ app.put('/users/:userid', (req, res) => {
         userid: req.params.userid,
     };
 
-    bcrypt.hash(req.body.password, 10, (err, hash) => {
-        data.password = hash;
-        users.updateUser(data, (err, result) => {
-            if (!err) {
-                let cred = {
-                    userid: data.userid,
-                    email: req.body.email,
-                    password: hash,
-                }
-                users.updateCreds(cred, (pwderr, pwdresult) => {
-                    if (!pwderr) {
-                        res.status(204).type("json").send(JSON.stringify(result));
+    bcrypt.hash(req.body.password, 10, (bc_err, hash) => {
+        if (!bc_err) {
+            data.password = hash;
+            users.updateUser(data, (err, result) => {
+                if (!err) {
+                    let cred = {
+                        userid: data.userid,
+                        email: req.body.email,
+                        password: hash,
                     }
-                    else {
-                        res.status(500).type("json").send(JSON.stringify({ err, pwderr }));
-                    }
-                })
-            }
-            else {
-                if (err.errno === 1062) {
-                    res.status(422).type("json").send(JSON.stringify(err));
-                } else {
-                    res.status(500).type("json").send(JSON.stringify(err));
+                    users.updateCreds(cred, (pwderr, pwdresult) => {
+                        if (!pwderr) {
+                            res.status(204).type("json").send(JSON.stringify(result));
+                        }
+                        else {
+                            res.status(500).type("json").send(JSON.stringify({ err, pwderr }));
+                        }
+                    })
                 }
-            }
-        })
+                else {
+                    if (err.errno === 1062) {
+                        res.status(422).type("json").send(JSON.stringify(err));
+                    } else {
+                        res.status(500).type("json").send(JSON.stringify(err));
+                    }
+                }
+            })
+        } else {
+            res.status(500).type("json").send(JSON.stringify(bc_err));
+        }
     })
 
 });
@@ -603,6 +613,28 @@ app.get('/fe/listings', (req, res) => {
         }
     })
 
+})
+
+// 24. Get listings per category
+app.get('/listings/category/:categoryid', (req, res) => {
+    console.log("Servicing GET /listings/category/:categoryid...");
+    
+    var categoryid = req.params.categoryid;
+    categories.getListingsByCat(categoryid, (err, result) => {
+        if (!err) {
+            if (!result) {
+                var output = {
+                    error: "There is no listing in this category."
+                }
+                res.status(400).type("json").send(JSON.stringify(output));
+            } else {
+                res.status(200).type("json").send(JSON.stringify(result));
+            }
+        }
+        else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
 })
 
 app.use((err, req, res, next) => {

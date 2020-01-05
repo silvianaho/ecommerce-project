@@ -1,6 +1,11 @@
+<!--
+Name: Silviana
+Student ID = p1939213
+Course : DIT/FT/1B/14
+-->
+
 <template>
-  <div class="container mt-4">
-    <!-- <div class="card-deck"> -->
+  <div class="container mt-4 mb-5">
     <div class="row">
       <div class="col-md-6 col-lg-3 mb-3" v-for="listing in listings" :key="listing.listingsid">
         <div class="card h-100">
@@ -13,14 +18,17 @@
           </div>
           <!-- card body -->
           <div class="card-body">
-            <h5 class="card-title">{{listing.title}}</h5>
+            <h5 class="card-title" v-if="listing.title.length < 14">{{ listing.title }}</h5>
+            <h5
+              class="card-title"
+              v-if="listing.title.length >= 14"
+            >{{ listing.title.substring(0,14)+".." }}</h5>
             <h6 class="card-subtitle mb-2 text-muted">${{ listing.price }}</h6>
-            <!-- <p class="card-text">{{listing.description}}</p> -->
-            <p class="card-text" v-if="listing.description.length < 40">{{ listing.description }}</p>
+            <p class="small" v-if="listing.description.length < 60">{{ listing.description }}</p>
             <p
-              class="text-small"
-              v-if="listing.description.length >= 40"
-            >{{ listing.description.substring(0,40)+".." }}</p>
+              class="small"
+              v-if="listing.description.length >= 60"
+            >{{ listing.description.substring(0,60)+".." }}</p>
           </div>
           <!-- card footer -->
           <div class="card-footer text-left">
@@ -34,12 +42,7 @@
                 <font-awesome-icon class="text-danger" :icon="['fas', 'heart']" />
               </small>
             </button>
-            <button
-              class="hidedefaultbtn"
-              v-else
-              type="button"
-              @click="likeListing(listing)"
-            >
+            <button class="hidedefaultbtn" v-else type="button" @click="likeListing(listing)">
               <small>
                 <font-awesome-icon :icon="['far', 'heart']" />
               </small>
@@ -67,8 +70,7 @@ export default {
       listings: [],
       likeForm: {
         userid: null
-      },
-      likecount: []
+      }
     };
   },
   mounted() {
@@ -163,12 +165,15 @@ export default {
       this.validateToken();
       this.likeForm.userid = parseInt(localStorage.userid);
       axios
-        .post("http://localhost:3000/listings/" + listing.listingsid + "/likes", this.likeForm)
+        .post(
+          "http://localhost:3000/listings/" + listing.listingsid + "/likes",
+          this.likeForm
+        )
         .then(result => {
           // eslint-disable-next-line no-console
           console.log(result);
-          this.$set(listing, 'liked', true)
-          this.$nextTick(listing.likeCount++)
+          this.$set(listing, "liked", true);
+          this.$nextTick(listing.likeCount++);
         })
         .catch(error => {
           // eslint-disable-next-line no-console
@@ -181,13 +186,13 @@ export default {
       axios
         .delete(
           "http://localhost:3000/listings/" + listing.listingsid + "/likes",
-          {data: this.likeForm}
+          { data: this.likeForm }
         )
         .then(result => {
           // eslint-disable-next-line no-console
           console.log(result);
-          this.$nextTick(listing.liked = false)
-          this.$nextTick(listing.likeCount--)
+          this.$nextTick((listing.liked = false));
+          this.$nextTick(listing.likeCount--);
         })
         .catch(error => {
           // eslint-disable-next-line no-console

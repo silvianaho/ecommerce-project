@@ -1,3 +1,9 @@
+<!--
+Name: Silviana
+Student ID = p1939213
+Course : DIT/FT/1B/14
+-->
+
 <template>
   <nav
     class="navbar navbar-expand-md navbar-light bg-white border-bottom"
@@ -160,6 +166,13 @@ export default {
     },
     emitMethod() {
       EventBus.$emit("logged-in", "loggedin");
+    }
+  },
+  computed: {
+    filteredList() {
+      return this.postList.filter(post => {
+        return post.title.toLowerCase().includes(this.search.toLowerCase())
+      })
     }
   }
 };

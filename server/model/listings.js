@@ -16,7 +16,6 @@ var listingsDB = {
 
         db.connection.query(sqlstring, id, (err, result) => {
             if (err) {
-                console.log(err);
                 return callback(err, null);
             } else {
                 if (result.length == 0) {
@@ -34,7 +33,6 @@ var listingsDB = {
 
         db.connection.query(sqlstring, [], (err, result) => {
             if (err) {
-                console.log(err);
                 return callback(err, null);
             } else {
                 return callback(null, result);
@@ -48,7 +46,6 @@ var listingsDB = {
 
         db.connection.query(sqlstring, id, (err, result) => {
             if (err) {
-                console.log(err);
                 return callback(err, null);
             } else {
                 if (result.length == 0) {
@@ -78,7 +75,6 @@ var listingsDB = {
 
         db.connection.query(sqlstring, values, (err, result) => {
             if (err) {
-                console.log(err);
                 return callback(err, null);
             } else {
                 return callback(null, result);
@@ -92,7 +88,6 @@ var listingsDB = {
 
         db.connection.query(sqlstring, id, (err, result) => {
             if (err) {
-                console.log(err);
                 return callback(err, null);
             } else {
                 if (result.length == 0) {
@@ -149,7 +144,6 @@ var listingsDB = {
 
             db.connection.query(sqlstring, values, (err, result) => {
                 if (err) {
-                    console.log(err);
                     return callback(err, null);
                 } else {
                     if (result.length == 0) {
@@ -168,7 +162,6 @@ var listingsDB = {
 
         db.connection.query(sqlstring, [id], (err, result) => {
             if (err) {
-                console.log(err);
                 return callback(err, null);
             } else {
                 if (result.length == 0) {
@@ -186,7 +179,6 @@ var listingsDB = {
 
         db.connection.query(sqlstring, [], (err, result) => {
             if (err) {
-                console.log(err);
                 return callback(err, null);
             } else {
                 return callback(null, result);

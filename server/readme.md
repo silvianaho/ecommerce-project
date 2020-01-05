@@ -12,8 +12,14 @@ Class       : DIT/FT/1B/14
 3. Rename '.env_sample' to '.env'
 4. Go to command prompt
 5. Cd into /server
-6. run 'npm install'
-7. run 'npm run start-dev'
+6. run 
+```
+npm install
+```
+7. run 
+```
+npm run start-dev
+```
 
 ## B. To run the client server:
 1. Open command prompt
@@ -24,11 +30,11 @@ npm install
 ```
 4. To run the client server, you can choose from these 2 options 
  
-a. To compiles and hot-reloads for development:
+a. For development (compile and hot-reload), run:
 ```
 npm run serve
 ```
-b. To compile and minify for production, run:
+b. For production (compile and minify), run:
 ```
 npm run build
 ```
@@ -37,11 +43,14 @@ cd into /client/dist/, then run:
 npm run serve
 ```
 
+Parts that are working fine: Login/register, logout, homepage, profile, viewing other user's profile, adding a new listing, like/unlike, user not found page (type an unknown username on the url bar)
+
+
 ## C. To view image
 First method (1 image): 
 1. Go to any browser
 2. Enter 'http://localhost:3000/listings/:listingid/picture' into the location bar
-3. Change :listingid to any listingid available
+3. Change ":listingid" to any listingid available
 
 Second method (all images):
 1. Run the client server (refer to B)
@@ -73,13 +82,15 @@ Second method (all images):
 21. Get a picture                               (http://localhost:3000/listings/:listingid/picture)
 22. Listings for Front End (Logged in user)     (http://localhost:3000/:userid/fe/listings)
 23. Listings for Front End (Logged out user)    (http://localhost:3000/fe/listings)
+24. Find listings by category                   (http://localhost:3000/listings/category/:listingsid)
 
 ---
 
 # Additional features
-
-1. Like and Unlike
-2. Upload and get images
-3. Password hashing
-4. User validation with jsonwebtoken
-5. Search by category
+|No |   Feature                          |  Endpoints   |
+|---|------------------------------------|--------------|
+|1. |Like and Unlike                     |   (16-19)    |
+|2. |Upload and get images               | (8, 10, 20)  |
+|3. |Password hashing                    |   (2 & 4)    |
+|4. |User validation with jsonwebtoken   |   (14-15)    |
+|5. |Categories                          |  (13 & 24)   |

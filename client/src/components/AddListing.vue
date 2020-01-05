@@ -1,5 +1,11 @@
+<!--
+Name: Silviana
+Student ID = p1939213
+Course : DIT/FT/1B/14
+-->
+
 <template>
-  <div class="container mt-5">
+  <div class="container mt-5 mb-5">
     <h2 class="font-weight-bold text-left">What are you listing today?</h2>
     <p class="text-left">Upload photos of your item or choose a category to get started.</p>
     <form @submit.prevent="addListing()" enctype="multipart/form-data">

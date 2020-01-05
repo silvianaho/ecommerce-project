@@ -22,8 +22,8 @@ Vue.use(Router)
 
 const routes = [
     {
-        path: '/',
         name: 'listings',
+        path: '/',
         component: Listings
     },
     {

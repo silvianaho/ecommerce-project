@@ -1,3 +1,9 @@
+<!--
+Name: Silviana
+Student ID = p1939213
+Course : DIT/FT/1B/14
+-->
+
 <template>
   <div class="profile">
     <div class="row m-0">
@@ -108,7 +114,7 @@ export default {
       isUser: false
     };
   },
-  mounted() {
+  created() {
     this.getUserInfo();
   },
   methods: {
@@ -124,7 +130,6 @@ export default {
         .catch(error => {
           // eslint-disable-next-line no-console
           console.error(error);
-          this.ERROR.push(error);
           if (error.message === "Request failed with status code 404") {
             router.push({ name: "notfound" });
           }

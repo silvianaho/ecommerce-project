@@ -1,3 +1,9 @@
+<!--
+Name: Silviana
+Student ID = p1939213
+Course : DIT/FT/1B/14
+-->
+
 <template>
   <div id="app" v-cloak>
     <NavBar />
@@ -12,12 +18,11 @@ import router from "./router";
 export default {
   name: "app",
   components: {
-    NavBar
+    NavBar, 
   },
   data () {
     return{
-    // eslint-disable-next-line no-console
-    routeName: router.currentRoute.name
+    routeName: router.currentRoute.name,
     }
   }
 };
