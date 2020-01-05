@@ -34,7 +34,6 @@ const storage = multer.diskStorage({
         cb(null, path.join(__dirname, '../assets/uploads'))
     },
     filename: function (req, file, cb) {
-        console.log("file", file);
         let fileExtension = file.originalname.split('.').pop()
         let name = file.fieldname + '-' + Date.now() + '.' + fileExtension
         cb(null, name)
@@ -142,15 +141,15 @@ app.get('/users/:id', (req, res) => {
 });
 
 // 4. update user
-app.put('/users/:id', (req, res) => {
-    console.log("Servicing PUT /users/:id...");
+app.put('/users/:userid', (req, res) => {
+    console.log("Servicing PUT /users/:userid...");
 
     var data = {
         username: req.body.username,
         email: req.body.email,
         password: req.body.password,
         profile_pic_url: req.body.profile_pic_url,
-        userid: req.params.id,
+        userid: req.params.userid,
     };
 
     bcrypt.hash(req.body.password, 10, (err, hash) => {
@@ -184,10 +183,10 @@ app.put('/users/:id', (req, res) => {
 });
 
 // 5. get all listings by user
-app.get('/users/:user_id/listings', (req, res) => {
-    console.log("Servicing GET /users/:user_id/listings...");
+app.get('/users/:userid/listings', (req, res) => {
+    console.log("Servicing GET /users/:userid/listings...");
 
-    var id = req.params.user_id;
+    var id = req.params.userid;
 
     listings.getListingfromUser(id, (err, result) => {
         if (!err) {
@@ -221,11 +220,11 @@ app.get('/listings', (req, res) => {
 });
 
 // 7. get listings by listing id
-app.get('/listings/:listing_id', (req, res) => {
-    console.log("Servicing GET /listings/:listing_id...");
+app.get('/listings/:listingid', (req, res) => {
+    console.log("Servicing GET /listings/:listingid...");
 
-    var listing_id = req.params.listing_id;
-    listings.findListingbyID(listing_id, (err, result) => {
+    var listingid = req.params.listingid;
+    listings.findListingbyID(listingid, (err, result) => {
         if (!err) {
             if (!result) {
                 var output = {
@@ -245,7 +244,6 @@ app.get('/listings/:listing_id', (req, res) => {
 // 8. add new listing
 app.post('/listings', upload.single('file'), (req, res) => {
     console.log("Servicing POST /listings...");
-    console.log(req.file);
 
     var data = {
         title: req.body.title,
@@ -273,12 +271,12 @@ app.post('/listings', upload.single('file'), (req, res) => {
 });
 
 // 9. delete listing
-app.delete('/listings/:id', (req, res) => {
-    console.log("Servicing DELETE /listings/:id...");
+app.delete('/listings/:listingid', (req, res) => {
+    console.log("Servicing DELETE /listings/:listingid...");
 
-    var id = req.params.id;
+    var listingid = req.params.listingid;
 
-    listings.deleteListing(id, (err, result) => {
+    listings.deleteListing(listingid, (err, result) => {
         if (!err) {
             res.status(204).type("json").send(JSON.stringify(result));
         }
@@ -289,8 +287,8 @@ app.delete('/listings/:id', (req, res) => {
 })
 
 // 10. update a listing
-app.put('/listings/:id', upload.single('file'), (req, res) => {
-    console.log("Servicing PUT /listings/:id...");
+app.put('/listings/:listingid', upload.single('file'), (req, res) => {
+    console.log("Servicing PUT /listings/:listingid...");
 
     var data = {
         title: req.body.title,
@@ -298,8 +296,10 @@ app.put('/listings/:id', upload.single('file'), (req, res) => {
         price: req.body.price,
         category: req.body.category,
         filename: req.file.filename,
-        fileinfo: JSON.stringify(req.file),
-        listingsid: req.params.id
+        filesize: req.file.size,
+        filetype: req.file.mimetype,
+        fileencoding: req.file.encoding,
+        listingid: req.params.listingid,
     }
 
     listings.updateListing(data, (err, result) => {
@@ -314,12 +314,12 @@ app.put('/listings/:id', upload.single('file'), (req, res) => {
 });
 
 // 11. get all offers for a listing
-app.get('/listings/:id/offers', (req, res) => {
-    console.log("Servicing GET /listings/:id/offers...");
+app.get('/listings/:listingid/offers', (req, res) => {
+    console.log("Servicing GET /listings/:listingid/offers...");
 
-    var id = req.params.id;
+    var listingid = req.params.listingid;
 
-    offers.getOffers(id, (err, result) => {
+    offers.getOffers(listingid, (err, result) => {
         if (!err) {
             if (!result) {
                 var output = {
@@ -337,12 +337,12 @@ app.get('/listings/:id/offers', (req, res) => {
 })
 
 // 12. add a new offer to a listing
-app.post('/listings/:id/offers', (req, res) => {
+app.post('/listings/:listingid/offers', (req, res) => {
     console.log("Servicing POST /users...");
 
     var data = {
         offer: req.body.offer,
-        fk_listing_id: req.params.id,
+        fk_listing_id: req.params.listingid,
         fk_offerer_id: req.body.fk_offerer_id
     }
 
@@ -420,7 +420,7 @@ app.post('/validate', (req, res) => {
     jwt.verify(token, process.env.SECRET_KEY, function (err, decodedToken) {
         if (!err) {
             let output = {
-                token: jwt.sign(decodedToken, process.env.SECRET_KEY)
+                "message": "User logged in."
             }
             res.status(200).type("json").send(output)
 
@@ -529,9 +529,9 @@ app.get('/profile/:username', (req, res) => {
 });
 
 // 21. get a picture
-app.get('/listings/:listingsid/picture', (req, res) => {
-    console.log("Servicing GET /listings/:listingsid/picture...");
-    let id = req.params.listingsid;
+app.get('/listings/:listingid/picture', (req, res) => {
+    console.log("Servicing GET /listings/:listingid/picture...");
+    let id = req.params.listingid;
 
     listings.pictureById(id, (err, result) => {
         if (!err) {

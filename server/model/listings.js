@@ -102,7 +102,7 @@ var listingsDB = {
     updateListing: (data, callback) => {
         var sqlstring = "UPDATE listings SET title=?, description=?, price=?, fk_category_id=?, filename=?, filesize=?, filetype=?, fileencoding=? WHERE listingsid=?";
 
-        listingsDB.findListingbyID(data.listingsid, (err, result) => {
+        listingsDB.findListingbyID(data.listingid, (err, result) => {
             if (data.title === "") {
                 data.title = result[0].title;
             };
@@ -113,7 +113,7 @@ var listingsDB = {
                 data.price = result[0].price;
             };
             if (data.category === "") {
-                data.category = result[0].category;
+                data.category = result[0].fk_category_id;
             };
             if (data.filename === "") {
                 data.filename = result[0].filename;
@@ -133,11 +133,11 @@ var listingsDB = {
                 data.description,
                 data.price,
                 data.category,
-                data.listingsid,
                 data.filename,
                 data.filesize,    
                 data.filetype,    
                 data.fileencoding,
+                data.listingid,
             ];
 
 
