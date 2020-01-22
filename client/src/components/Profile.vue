@@ -29,8 +29,10 @@ Course : DIT/FT/1B/14
           <b-tabs content-class="mt-3" fill>
             <!-- Listings Tab -->
             <b-tab title="Listings" class="tabs" active>
-              <div class="row">
-                <div
+              <div class="row"
+                  v-if="userlisting.message == undefined"
+              >
+                <div 
                   class="col-md-6 col-lg-3 mb-3"
                   v-for="listing in userlisting"
                   :key="listing.listingsid"
@@ -49,10 +51,10 @@ Course : DIT/FT/1B/14
                       <p class="card-subtitle">S${{listing.price}}</p>
                       <p
                         class="card-subtitle"
-                        v-if="listing.description.length < 26"
+                        v-if="listing.description && listing.description.length < 26"
                       >{{ listing.description }}</p>
                       <p
-                        v-if="listing.description.length >= 26"
+                        v-if="listing.description && listing.description.length >= 26"
                       >{{ listing.description.substring(0,26)+".." }}</p>
                       <p
                         class="card-subtitle font-weight-light text-muted"

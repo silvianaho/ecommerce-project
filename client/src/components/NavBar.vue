@@ -109,27 +109,32 @@ export default {
       token: localStorage.usertoken,
       userid: localStorage.userid,
       showNav: false,
-      searchOption: [{ id: 1, text: "Items" }, { id: 2, text: "People" }],
+      searchOption: [
+        { id: 1, text: "Items" },
+        { id: 2, text: "People" }
+      ],
       selectedsearch: "Items",
       userinfo: []
     };
   },
   created() {
-    this.validateToken();
-    EventBus.$on("logged-in", status => {
-      this.auth = status;
-      this.token = localStorage.usertoken;
-      this.userid = localStorage.userid;
-      axios
-        .get("http://localhost:3000/users/" + this.userid)
-        .then(result => {
-          this.userinfo = result.data;
-        })
-        .catch(error => {
-          // eslint-disable-next-line no-console
-          console.error(error);
-        });
-    });
+    let config = {
+      headers: {
+        authorization: "Bearer " + localStorage.usertoken
+      }
+    };
+    axios
+      .get("http://localhost:3000/users/me/" + this.userid, config)
+      .then(result => {
+        this.userinfo = result.data;
+        // eslint-disable-next-line no-console
+        console.log(result.data);
+      })
+      .catch(error => {
+        // eslint-disable-next-line no-console
+        console.error(error);
+      });
+    // });
   },
   methods: {
     logout() {
@@ -139,31 +144,31 @@ export default {
       this.userid = null;
       this.token = null;
     },
-    reload(){
-      location.reload()
+    reload() {
+      location.reload();
     },
     toggleNavbar() {
       this.showNav = !this.showNav;
     },
-    validateToken() {
-      let config = {
-        headers: {
-          authorization: "Bearer " + localStorage.usertoken
-        }
-      };
-      axios
-        .post("http://localhost:3000/validate", null, config)
-        .then(result => {
-          // eslint-disable-next-line no-console
-          console.log(result);
-          this.emitMethod();
-        })
-        .catch(error => {
-          if (error.response.status === 401) {
-            this.logout();
-          }
-        });
-    },
+    // validateToken() {
+    //   let config = {
+    //     headers: {
+    //       authorization: "Bearer " + localStorage.usertoken
+    //     }
+    //   };
+    //   axios
+    //     .post("http://localhost:3000/validate", null, config)
+    //     .then(result => {
+    //       // eslint-disable-next-line no-console
+    //       console.log(result);
+    //       this.emitMethod();
+    //     })
+    //     .catch(error => {
+    //       if (error.response.status === 401) {
+    //         this.logout();
+    //       }
+    //     });
+    // },
     emitMethod() {
       EventBus.$emit("logged-in", "loggedin");
     }
@@ -171,8 +176,8 @@ export default {
   computed: {
     filteredList() {
       return this.postList.filter(post => {
-        return post.title.toLowerCase().includes(this.search.toLowerCase())
-      })
+        return post.title.toLowerCase().includes(this.search.toLowerCase());
+      });
     }
   }
 };

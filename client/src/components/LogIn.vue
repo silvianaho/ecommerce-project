@@ -83,11 +83,11 @@ Course : DIT/FT/1B/14
           <h2>Log In</h2>
           <div>Use your account</div>
           <input
-            type="email"
+            type="text"
             id="si-email"
             class="mt-2 w-100"
-            placeholder="Email"
-            v-model="signin.email"
+            placeholder="Username"
+            v-model="signin.username"
             name="si_email"
             required
           />
@@ -130,7 +130,7 @@ export default {
         password: null
       },
       signin: {
-        email: null,
+        username: null,
         password: null
       },
       userid: null,

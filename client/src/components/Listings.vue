@@ -77,28 +77,19 @@ export default {
     this.getListings();
   },
   methods: {
-    validateToken() {
-      let config = {
-        headers: {
-          authorization: "Bearer " + localStorage.usertoken
-        }
-      };
-      axios
-        .post("http://localhost:3000/validate", null, config)
-        .then(result => {
-          // eslint-disable-next-line no-console
-          console.log(result);
-        })
-        .catch(err => {
-          // eslint-disable-next-line no-console
-          console.error(err);
-          router.push({ name: "login" });
-        });
-    },
     getListings() {
       if (localStorage.userid) {
+        let config = {
+          headers: {
+            authorization: "Bearer " + localStorage.usertoken
+          }
+        };
+
         axios
-          .get("http://localhost:3000/" + localStorage.userid + "/fe/listings/")
+          .get(
+            "http://localhost:3000/" + localStorage.userid + "/fe/listings/",
+            config
+          )
           .then(result => {
             this.listings = result.data;
 
@@ -127,6 +118,13 @@ export default {
           .catch(error => {
             // eslint-disable-next-line no-console
             console.error(error);
+            alert("Your session has expired, please log in again!");
+            localStorage.removeItem("usertoken");
+            localStorage.removeItem("userid");
+            this.auth = "";
+            this.userid = null;
+            this.token = null;
+            router.push({ name: "login" });
           });
       } else {
         axios
@@ -162,12 +160,18 @@ export default {
       }
     },
     likeListing(listing) {
-      this.validateToken();
+      let config = {
+        headers: {
+          authorization: "Bearer " + localStorage.usertoken
+        }
+      };
+      // this.validateToken();
       this.likeForm.userid = parseInt(localStorage.userid);
       axios
         .post(
           "http://localhost:3000/listings/" + listing.listingsid + "/likes",
-          this.likeForm
+          this.likeForm,
+          config
         )
         .then(result => {
           // eslint-disable-next-line no-console
@@ -178,15 +182,20 @@ export default {
         .catch(error => {
           // eslint-disable-next-line no-console
           console.error(error);
+          router.push({ name: "login" });
         });
     },
     unlikeListing(listing) {
-      this.validateToken();
       this.likeForm.userid = parseInt(localStorage.userid);
       axios
         .delete(
           "http://localhost:3000/listings/" + listing.listingsid + "/likes",
-          { data: this.likeForm }
+          {
+            data: this.likeForm,
+            headers: {
+              authorization: "Bearer " + localStorage.usertoken
+            }
+          }
         )
         .then(result => {
           // eslint-disable-next-line no-console

@@ -10,11 +10,13 @@ const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET;
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs')
 
+const isLoggedInMiddleware = require('../isLoggedInMiddleware');
 const users = require('../model/users');
 const listings = require('../model/listings');
 const offers = require('../model/offers');
@@ -82,49 +84,28 @@ app.post('/users', (req, res) => {
     var data = {
         username: req.body.username,
         email: req.body.email,
-        password: req.body.password
+        password: req.body.password,
+        profile_pic_url: req.body.profile_pic_url
     }
 
-    bcrypt.hash(req.body.password, 10, (bc_err, hash) => {
-        if (!bc_err) {
-            data.password = hash
-            console.log(data.password)
-            users.addUser(data, (err, result) => {
-                if (!err) {
-                    let cred = {
-                        userid: result.insertId,
-                        email: req.body.email,
-                        password: hash,
-                    }
-                    users.insertPwd(cred, (pwderr, pwdresult) => {
-                        if (!pwderr) {
-                            var output = {
-                                "userID": result.insertId,
-                            }
-                            res.status(201).type("json").send(JSON.stringify(output));
-                        }
-                        else {
-                            res.status(500).type("json").send(JSON.stringify({ err, pwderr }));
-                            return false;
-                        }
-                    })
-                } else {
-                    if (err.errno === 1062) {
-                        let output = {
-                            err,
-                            error: "This Username/Email is Taken.",
-                        }
-                        res.status(422).type("json").send(JSON.stringify(output));
-                    } else {
-                        res.status(500).type("json").send(JSON.stringify(err));
-                    }
+    users.addUser(data, (err, result) => {
+        if (err) {
+            if (err.errno === 1062) {
+                let output = {
+                    err,
+                    error: "This Username/Email is Taken.",
                 }
-            })
+                res.status(422).type("json").send(JSON.stringify(output));
+            } else {
+                res.status(500).type("json").send(JSON.stringify(err));
+            }
         } else {
-            res.status(500).type("json").send(JSON.stringify(bc_err));
+            var output = {
+                "userID": result.insertId,
+            }
+            res.status(201).type("json").send(JSON.stringify(output));
         }
     })
-
 });
 
 // 3. get user by id
@@ -149,8 +130,30 @@ app.get('/users/:userid', (req, res) => {
     })
 });
 
+// 3.5 get my own user info
+app.get('/users/me/:userid', isLoggedInMiddleware, (req, res) => {
+    console.log("Servicing GET /users/:userid...");
+
+    var userid = req.params.userid;
+    users.findUserbyID(userid, (err, result) => {
+        if (!err) {
+            if (!result) {
+                var output = {
+                    error: "User does not exist."
+                }
+                res.status(404).type("json").send(JSON.stringify(output));
+            } else {
+                res.status(200).type("json").send(JSON.stringify(result));
+            }
+        }
+        else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
+});
+
 // 4. update user
-app.put('/users/:userid', (req, res) => {
+app.put('/users/:userid', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing PUT /users/:userid...");
 
     var data = {
@@ -255,7 +258,7 @@ app.get('/listings/:listingid', (req, res) => {
 });
 
 // 8. add new listing
-app.post('/listings', upload.single('file'), (req, res) => {
+app.post('/listings', isLoggedInMiddleware, upload.single('file'), (req, res) => {
     console.log("Servicing POST /listings...");
 
     var data = {
@@ -284,7 +287,7 @@ app.post('/listings', upload.single('file'), (req, res) => {
 });
 
 // 9. delete listing
-app.delete('/listings/:listingid', (req, res) => {
+app.delete('/listings/:listingid', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing DELETE /listings/:listingid...");
 
     var listingid = req.params.listingid;
@@ -300,7 +303,7 @@ app.delete('/listings/:listingid', (req, res) => {
 })
 
 // 10. update a listing
-app.put('/listings/:listingid', upload.single('file'), (req, res) => {
+app.put('/listings/:listingid', isLoggedInMiddleware, upload.single('file'), (req, res) => {
     console.log("Servicing PUT /listings/:listingid...");
 
     var data = {
@@ -350,7 +353,7 @@ app.get('/listings/:listingid/offers', (req, res) => {
 })
 
 // 12. add a new offer to a listing
-app.post('/listings/:listingid/offers', (req, res) => {
+app.post('/listings/:listingid/offers', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing POST /users...");
 
     var data = {
@@ -389,57 +392,36 @@ app.get('/categories', (req, res) => {
 app.post('/login', (req, res) => {
     console.log("Servicing POST /login...");
     var data = {
-        email: req.body.email,
+        username: req.body.username,
         password: req.body.password
     }
 
-    users.findUserbyEmail(data.email, (err, result) => {
-        if (!err) {
-            if (!result) {
-                var output = {
-                    error: "User does not exist."
-                }
-                res.status(400).type("json").send(JSON.stringify(output));
-            } else if (bcrypt.compareSync(data.password, result[0].password)) {
-                let output = {
-                    token: jwt.sign(data, process.env.SECRET_KEY, { expiresIn: 3600 }),
-                    userid: result[0].userid
-                }
-                res.status(200).type("json").send(output);
-            }
-            else {
-                let output = {
-                    error: "Wrong password."
-                }
-                res.status(400).type("json").send(output);
-            }
-        }
-        else {
+    users.verify(data, (err, result) => {
+        if (err) {
             res.status(500).type("json").send(JSON.stringify(err));
-        }
-    })
-})
-
-// 15. Validate token
-app.post('/validate', (req, res) => {
-    console.log("Servicing POST /validate...");
-
-    let token = req.headers.authorization;
-
-    if (token.startsWith('Bearer ')) {
-        token = token.slice(7, token.length);
-    }
-
-    jwt.verify(token, process.env.SECRET_KEY, function (err, decodedToken) {
-        if (!err) {
-            let output = {
-                "message": "User logged in."
-            }
-            res.status(200).type("json").send(output)
-
         } else {
-            let output = { "message": "the current user is not logged in" }
-            res.status(401).type("json").send(output)
+            if (result == null) {
+                res.status(400).type("json").send(JSON.stringify("Unauthorized/"));
+            } else {
+                const payload = { userid: result.userid };
+                const options = {
+                    algorithm: "HS256",
+                    expiresIn: 3600
+                };
+                // @ts-ignore
+                jwt.sign(payload, JWT_SECRET, options, function (error, token) {
+                    if (error) {
+                        console.log(error);
+                        res.status(401).send(error);
+                    } else {
+                        console.log(result)
+                        res.status(200).send({
+                            token: token,
+                            userid: result.userid
+                        });
+                    }
+                })
+            }
         }
     })
 })
@@ -483,7 +465,7 @@ app.get('/users/:userid/likes', (req, res) => {
 })
 
 // 18. Like a listing
-app.post('/listings/:listingid/likes', (req, res) => {
+app.post('/listings/:listingid/likes', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing POST /listings/:listingid/likes...");
 
     var data = {
@@ -501,7 +483,7 @@ app.post('/listings/:listingid/likes', (req, res) => {
 });
 
 // 19. Unlike a listing
-app.delete('/listings/:listingid/likes', (req, res) => {
+app.delete('/listings/:listingid/likes', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing DELETE /listings/:listingid/likes...");
 
     var data = {
@@ -571,7 +553,7 @@ app.get('/listings/:listingid/picture', (req, res) => {
 });
 
 // 22. Listings for Front End (Loggedin user)
-app.get('/:userid/fe/listings', (req, res) => {
+app.get('/:userid/fe/listings', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing GET /:userid/fe/listings...");
 
     let data = {
@@ -618,7 +600,7 @@ app.get('/fe/listings', (req, res) => {
 // 24. Get listings per category
 app.get('/listings/category/:categoryid', (req, res) => {
     console.log("Servicing GET /listings/category/:categoryid...");
-    
+
     var categoryid = req.params.categoryid;
     categories.getListingsByCat(categoryid, (err, result) => {
         if (!err) {

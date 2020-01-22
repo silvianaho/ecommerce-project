@@ -4,7 +4,10 @@ Student ID: p1939213
 Course: DIT/FT/1B/14
 */
 
-require('dotenv').config();
+if (process.env.NODE_ENV === "development") {
+    require('dotenv').config({ path: ".env.development" });
+}
+
 const dbserver = require('./model/databaseConfig');
 const app = require('./controller/app');
 

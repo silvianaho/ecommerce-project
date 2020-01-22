@@ -153,27 +153,8 @@ export default {
   },
   mounted() {
     this.getCategories();
-    this.validateToken();
   },
   methods: {
-    validateToken() {
-      let config = {
-        headers: {
-          authorization: "Bearer " + localStorage.usertoken
-        }
-      };
-      axios
-        .post("http://localhost:3000/validate", null, config)
-        .then(result => {
-          // eslint-disable-next-line no-console
-          console.log(result);
-        })
-        .catch(err => {
-          // eslint-disable-next-line no-console
-          console.error(err);
-          router.push({ name: "login" });
-        });
-    },
     getCategories() {
       axios
         .get("http://localhost:3000/categories")
@@ -217,7 +198,9 @@ export default {
       axios
         .post("http://localhost:3000/listings", formData, {
           headers: {
-            "Content-Type": "multipart/form-data"
+            "Content-Type": "multipart/form-data",
+            authorization: "Bearer " + localStorage.usertoken
+
           }
         })
         .then(result => {

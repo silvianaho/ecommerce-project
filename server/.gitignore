@@ -17,7 +17,7 @@ node_modules/
 # End of https://www.gitignore.io/api/node,code,vuejs
 
 ### dotenv ###
-.env
+.env.development
 
 ### db-dump ###
 db-dump/
