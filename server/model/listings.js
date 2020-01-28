@@ -185,6 +185,10 @@ var listingsDB = {
             }
         })
     },
+
+    searchListing: (string, callback) => {
+        
+    }
 };
 
 module.exports = listingsDB;
