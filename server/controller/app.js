@@ -130,28 +130,6 @@ app.get('/users/:userid', (req, res) => {
     })
 });
 
-// 3.5 get my own user info
-app.get('/users/me/:userid', isLoggedInMiddleware, (req, res) => {
-    console.log("Servicing GET /users/:userid...");
-
-    var userid = req.params.userid;
-    users.findUserbyID(userid, (err, result) => {
-        if (!err) {
-            if (!result) {
-                var output = {
-                    error: "User does not exist."
-                }
-                res.status(404).type("json").send(JSON.stringify(output));
-            } else {
-                res.status(200).type("json").send(JSON.stringify(result));
-            }
-        }
-        else {
-            res.status(500).type("json").send(JSON.stringify(err));
-        }
-    })
-});
-
 // 4. update user
 app.put('/users/:userid', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing PUT /users/:userid...");
@@ -204,19 +182,36 @@ app.get('/users/:userid/listings', (req, res) => {
 
     var id = req.params.userid;
 
-    listings.getListingfromUser(id, (err, result) => {
+    users.findUserbyID(id, (err, result) => {
         if (!err) {
             if (!result) {
                 var output = {
-                    "message": "This user does not have any listing."
+                    error: "User does not exist."
                 }
-                res.status(200).type("json").send(JSON.stringify(output));
-            } else {
-                res.status(200).type("json").send(JSON.stringify(result));
+                res.status(404).type("json").send(JSON.stringify(output));
+                return;
+            }
+            else {
+                listings.getListingfromUser(id, (err, result) => {
+                    if (!err) {
+                        if (!result) {
+                            var output = {
+                                "message": "This user does not have any listing."
+                            }
+                            res.status(200).type("json").send(JSON.stringify(output));
+                        } else {
+                            res.status(200).type("json").send(JSON.stringify(result));
+                        }
+                    }
+                    else {
+                        res.status(500).type("json").send(JSON.stringify(err));
+                    }
+                })
             }
         }
         else {
             res.status(500).type("json").send(JSON.stringify(err));
+            return;
         }
     })
 });
@@ -401,7 +396,7 @@ app.post('/login', (req, res) => {
             res.status(500).type("json").send(JSON.stringify(err));
         } else {
             if (result == null) {
-                res.status(400).type("json").send(JSON.stringify("Unauthorized/"));
+                res.status(400).type("json").send(JSON.stringify("Unauthorized"));
             } else {
                 const payload = { userid: result.userid };
                 const options = {
@@ -553,7 +548,7 @@ app.get('/listings/:listingid/picture', (req, res) => {
 });
 
 // 22. Listings for Front End (Loggedin user)
-app.get('/:userid/fe/listings', isLoggedInMiddleware, (req, res) => {
+app.get('/fe/:userid/listings', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing GET /:userid/fe/listings...");
 
     let data = {
@@ -600,7 +595,7 @@ app.get('/fe/listings', (req, res) => {
 // 24. Get listings per category
 app.get('/listings/category/:categoryid', (req, res) => {
     console.log("Servicing GET /listings/category/:categoryid...");
-
+    
     var categoryid = req.params.categoryid;
     categories.getListingsByCat(categoryid, (err, result) => {
         if (!err) {
@@ -612,6 +607,26 @@ app.get('/listings/category/:categoryid', (req, res) => {
             } else {
                 res.status(200).type("json").send(JSON.stringify(result));
             }
+        }
+        else {
+            res.status(500).type("json").send(JSON.stringify(err));
+        }
+    })
+})
+
+app.get('/search', (req, res) => {
+    console.log("Servicing GET /search...");
+
+    let queries ={
+        title: req.query.title,
+        minprice: req.query.minprice,
+        maxprice: req.query.maxprice,
+        cond: req.query.cond
+    } 
+
+    listings.searchListing(queries, (err, result) => {
+        if (!err) {
+            res.status(200).type("json").send(JSON.stringify(result));
         }
         else {
             res.status(500).type("json").send(JSON.stringify(err));

@@ -68,8 +68,8 @@ var listingsDB = {
             data.fk_category_id,
             data.item_condition,
             data.filename,
-            data.filesize,    
-            data.filetype,    
+            data.filesize,
+            data.filetype,
             data.fileencoding,
         ];
 
@@ -135,8 +135,8 @@ var listingsDB = {
                 data.price,
                 data.category,
                 data.filename,
-                data.filesize,    
-                data.filetype,    
+                data.filesize,
+                data.filetype,
                 data.fileencoding,
                 data.listingid,
             ];
@@ -186,9 +186,43 @@ var listingsDB = {
         })
     },
 
-    searchListing: (string, callback) => {
-        
+    searchListing: (queries, callback) => {
+        var sqlstring = "SELECT * FROM listings";
+
+        db.connection.query(sqlstring, [], (err, result) => {
+            if (err) {
+                return callback(err, null);
+            } else {
+                if (result.length == 0) {
+                    return callback(null, null);
+                } else {
+                    var srTitle = []
+                    var srMinprice = []
+                    var srMaxprice = []
+                    var srCond = []
+                    var searchResult = []
+                    // if there's a title
+                    if (queries.title) {
+                        let expr = new RegExp(queries.title, "i")
+                        result.forEach(listing => {
+                            let sr = expr.test(listing.title)
+                            if (sr) {
+                                srTitle.push(listing)
+                            }
+                        });
+                        console.log(srTitle)
+                    }
+                    
+                    if (queries.minprice) {
+                        
+                    }
+                    
+                    return callback(null, srTitle);
+                }
+            }
+        })
+
     }
-};
+}
 
 module.exports = listingsDB;

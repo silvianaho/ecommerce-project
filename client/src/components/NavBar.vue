@@ -124,7 +124,7 @@ export default {
       }
     };
     axios
-      .get("http://localhost:3000/users/me/" + this.userid, config)
+      .get("http://localhost:3000/users/" + this.userid, config)
       .then(result => {
         this.userinfo = result.data;
         // eslint-disable-next-line no-console

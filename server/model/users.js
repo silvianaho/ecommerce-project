@@ -12,7 +12,7 @@ const saltRounds = 10;
 var usersDB = {
     // 1. get all users
     allUsers: (callback) => {
-        var sqlstring = "SELECT * FROM users";
+        var sqlstring = "SELECT userid, username, email, profile_pic_url, created_at, last_updated FROM users";
 
         db.connection.query(sqlstring, [], (err, result) => {
             if (err) {
@@ -57,25 +57,7 @@ var usersDB = {
 
     // 3. get user by id
     findUserbyID: (id, callback) => {
-        var sqlstring = "SELECT username, profile_pic_url, created_at FROM users WHERE userid=?";
-
-        db.connection.query(sqlstring, id, (err, result) => {
-            if (err) {
-                console.log(err);
-                return callback(err, null);
-            } else {
-                if (result.length == 0) {
-                    return callback(null, null);
-                } else {
-                    return callback(null, result);
-                }
-            }
-        })
-    },
-
-    // 3. get my info
-    myInfo: (id, callback) => {
-        var sqlstring = "SELECT * FROM users WHERE userid=?";
+        var sqlstring = "SELECT userid, username, email, profile_pic_url, created_at, last_updated FROM users WHERE userid=?";
 
         db.connection.query(sqlstring, id, (err, result) => {
             if (err) {
@@ -93,7 +75,7 @@ var usersDB = {
 
     // Extra: get userinfo from users table by username (case sensitive, absolute)
     findUserbyUsername: (username, callback) => {
-        var sqlstring = "SELECT * FROM users WHERE username=?";
+        var sqlstring = "SELECT userid, username, email, profile_pic_url, created_at, last_updated FROM users WHERE username=?";
 
         db.connection.query(sqlstring, username, (err, result) => {
             if (err) {
@@ -170,7 +152,7 @@ var usersDB = {
 
     // 5. Find user by email
     findUserbyEmail: (email, callback) => {
-        var sqlstring = "SELECT * FROM usercreds WHERE email=?";
+        var sqlstring = "SELECT userid, username, email, profile_pic_url, created_at, last_updated FROM usercreds WHERE email=?";
 
         db.connection.query(sqlstring, email, (err, result) => {
             if (err) {
