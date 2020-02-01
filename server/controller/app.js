@@ -29,6 +29,7 @@ var jpgExtension = new RegExp(/(.*)\.jpg/i);
 
 app.use(urlencodedParser);
 app.use(jsonParser);
+app.options('*', cors());
 app.use(cors());
 
 // Multer
@@ -617,9 +618,8 @@ app.get('/listings/category/:categoryid', (req, res) => {
     })
 })
 
-app.get('/listings/search', (req, res) => {
-    console.log("Servicing GET /search...");
-
+app.get('/search/listings', (req, res) => {
+    console.log("Servicing GET /search/listings...");
 
     let queries = {
         title: req.query.title,
@@ -631,22 +631,49 @@ app.get('/listings/search', (req, res) => {
         count: req.query.count,
     }
 
-    if (queries.minprice < 0 || queries.minprice >= queries.maxprice || isNaN(queries.minprice)) {
-        res.status(400).type("json").send({error: "Invalid min price value. Please enter a positive integer that is smaller than the max price"});
+    // if no value is entered, set default (numeric data only)
+    if (queries.minprice == "" || queries.minprice == undefined || isNaN(parseInt(queries.minprice))) {
+        queries.minprice = 0
+    }
+    if (queries.maxprice == "" || queries.maxprice == undefined || isNaN(parseInt(queries.minprice))) {
+        queries.maxprice = 999999999999.99
+    }
+    if (queries.lowerlimit == "" || queries.lowerlimit == undefined || isNaN(parseInt(queries.minprice))) {
+        queries.lowerlimit = 0
+    }
+    if (queries.count == "" || queries.count == undefined || isNaN(parseInt(queries.minprice))) {
+        queries.count = 10
+    }
+
+    // check if value is valid or not
+    console.log(queries)
+    if (queries.minprice < 0 || queries.minprice > queries.maxprice || isNaN(queries.minprice)) {
+        res.status(400).type("json").send({ error: "Invalid min price value. Please enter a positive integer that is smaller than the max price" });
         return;
     }
-    if (queries.maxprice < 0 || queries.minprice >= queries.maxprice || isNaN(queries.maxprice)) {
-        res.status(400).type("json").send({error: "Invalid max price value. Please enter a positive integer that is larger than the min price"});
+    if (queries.maxprice < 0 || queries.minprice > queries.maxprice || isNaN(queries.maxprice)) {
+        res.status(400).type("json").send({ error: "Invalid max price value. Please enter a positive integer that is larger than the min price" });
         return;
     }
-    if (queries.cond != "") {
-        res.status(400).type("json").send({error: "Invalid min price value. Please enter a positive integer that is smaller than the max price"});
+    if (queries.cond != "New" && queries.cond != "Used" && queries.cond != "") {
+        res.status(400).type("json").send({ error: "Invalid condition value. Please enter either 'New' or 'Used'" });
+        return;
+    }
+    if (queries.category > 8 || queries.category < 0 || isNaN(queries.category)) {
+        res.status(400).type("json").send({ error: "Invalid category value. Please enter a number from 1-8" });
         return;
     }
 
     listings.searchListing(queries, (err, result) => {
         if (!err) {
-            res.status(200).type("json").send(JSON.stringify(result));
+            if (!result) {
+                var output = {
+                    "message": "Your search did not match any listings."
+                }
+                res.status(404).type("json").send(JSON.stringify(output));
+            } else {
+                res.status(200).type("json").send(JSON.stringify(result));
+            }
         }
         else {
             res.status(500).type("json").send(JSON.stringify(err));

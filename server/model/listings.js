@@ -204,23 +204,11 @@ var listingsDB = {
         if (queries.title == "" || queries.title == undefined) {
             queries.title = ".*?"
         }
-        if (queries.minprice == "" || queries.minprice == undefined) {
-            queries.minprice = 0
-        }
-        if (queries.maxprice == "" || queries.maxprice == undefined) {
-            queries.maxprice = 999999999999.99
-        }
         if (queries.cond == "" || queries.cond == undefined) {
             queries.cond = ".*?"
         }
         if (queries.category == "" || queries.category == undefined) {
             queries.category = ".*?"
-        }
-        if (queries.lowerlimit == "" || queries.lowerlimit == undefined) {
-            queries.lowerlimit = 0
-        }
-        if (queries.count == "" || queries.count == undefined) {
-            queries.count = 10
         }
 
         let values = [
@@ -233,8 +221,6 @@ var listingsDB = {
             parseInt(queries.count)
         ] 
 
-        console.log(values)
-        
         db.connection.query(sqlstring, values, (err, result) => {
             if (err) {
                 return callback(err, null);

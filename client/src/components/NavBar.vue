@@ -38,7 +38,16 @@ Course : DIT/FT/1B/14
             >{{ option.text }}</option>
           </select>
         </div>
-        <input type="text" class="form-control" aria-label="Text input with dropdown button" />
+        <input
+          type="text"
+          v-model="searchForm.title"
+          class="form-control"
+          aria-label="Text input with dropdown button"
+        />
+        <button
+          class="btn btn-outline-secondary"
+          @click="search(selectedsearch, searchForm.title)"
+        >search</button>
       </div>
 
       <ul class="navbar-nav ml-auto mr-2">
@@ -99,6 +108,7 @@ Course : DIT/FT/1B/14
 <script>
 import EventBus from "./EventBus";
 import axios from "axios";
+import router from '../router';
 // import router from "../router";
 
 export default {
@@ -113,8 +123,17 @@ export default {
         { id: 1, text: "Items" },
         { id: 2, text: "People" }
       ],
-      selectedsearch: "Items",
-      userinfo: []
+      selectedsearch: 1,
+      userinfo: [],
+      searchForm:{
+        title: "",
+        minprice: "",
+        maxprice: "",
+        cond: "",
+        category: "",
+        lowerlimit: "",
+        count: "",
+      }
     };
   },
   created() {
@@ -171,6 +190,29 @@ export default {
     },
     toggleNavbar() {
       this.showNav = !this.showNav;
+    },
+    search(selectedsearch, title) {
+      switch (selectedsearch) {
+        case 1:
+          axios
+            .get("http://localhost:3000/search/listings", {
+              params: this.searchForm
+            })
+            .then(result => {
+              // eslint-disable-next-line no-console
+              console.log(result);
+              router.push('/search/listings')
+            })
+            .catch(error => {
+              // eslint-disable-next-line no-console
+              console.error(error);
+            });
+          break;
+        case 2:
+          break;
+      }
+      // eslint-disable-next-line no-console
+      console.log(JSON.stringify(selectedsearch) + JSON.stringify(title));
     }
   }
 };

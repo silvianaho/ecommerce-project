@@ -10,39 +10,39 @@ Course : DIT/FT/1B/14
       <div class="thumbnail">
         <img
           class="mx-auto card-img-top listingimg"
-          :src="imageurl"
+          :src="`http://localhost:3000/listings/${listing.listingsid}/picture`"
           alt="Card image cap"
         />
       </div>
       <!-- card body -->
       <div class="card-body">
-        <h5 class="card-title" v-if="title.length < 14">{{ title }}</h5>
-        <h5 class="card-title" v-if="title.length >= 14">{{ title.substring(0,14)+".." }}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">${{ price }}</h6>
-        <p class="small" v-if="description.length < 60">{{ description }}</p>
-        <p class="small" v-if="description.length >= 60">{{ description.substring(0,60)+".." }}</p>
+        <h5 class="card-title" v-if="listing.title.length < 14">{{ listing.title }}</h5>
+        <h5 class="card-title" v-if="listing.title.length >= 14">{{ listing.title.substring(0,14)+".." }}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">${{ listing.price }}</h6>
+        <p class="small" v-if="listing.description.length < 60">{{ listing.description }}</p>
+        <p class="small" v-if="listing.description.length >= 60">{{ listing.description.substring(0,60)+".." }}</p>
       </div>
       <!-- card footer -->
       <div class="card-footer text-left">
         <button
           class="hidedefaultbtn"
-          v-if="liked == true"
+          v-if="listing.liked == true"
           type="button"
-          @click="unlikeListing(listing)"
+          @click="$emit('unlike-listing', listing)"
         >
           <small>
             <font-awesome-icon class="text-danger" :icon="['fas', 'heart']" />
           </small>
         </button>
-        <button class="hidedefaultbtn" v-else type="button" @click="likeListing(listing)">
+        <button class="hidedefaultbtn" v-else type="button" @click="$emit('like-listing', listing)">
           <small>
             <font-awesome-icon :icon="['far', 'heart']" />
           </small>
         </button>
-        <small class="ml-1">{{likeCount}}</small>
+        <small class="ml-1">{{listing.likeCount}}</small>
         <small class="ml-1">
           Posted by:
-          <router-link :to="'/user/' + username">{{username}}</router-link>
+          <router-link :to="'/user/' + listing.username">{{listing.username}}</router-link>
         </small>
       </div>
     </div>
@@ -52,30 +52,9 @@ Course : DIT/FT/1B/14
 <script>
 export default {
   name: "listings",
-  prop: {
-    listingsid: Number,
-    title: String,
-    description: String,
-    likeCount: Number,
-    username: String,
-    liked: Boolean,
-    imageurl: String
-  },
-  mounted(){
-    
-  },
+  props: ['listing', 'imgurl'],
   data() {
     return {
-      description: "",
-      item_condition: "",
-      last_updated: "",
-      likeCount: 0,
-      listingsid: 1,
-      price: 0,
-      title: "",
-      username: "",
-      liked: false,
-      imageurl: "",
       likeForm: {
         userid: null
       }
@@ -84,7 +63,7 @@ export default {
   method: {
     getImage(listingsid) {
       // eslint-disable-next-line no-console
-      console.log("comp "+listingsid)
+      console.log("comp "+ listingsid)
       return "http://localhost:3000/listings/" + listingsid + "/picture";
     }
   }

@@ -17,6 +17,8 @@ import LogIn from './components/LogIn';
 // @ts-ignore
 import Profile from './components/Profile';
 // @ts-ignore
+import SearchResult from './pages/SearchResult';
+// @ts-ignore
 import NotFound from './components/NotFound';
 
 
@@ -42,6 +44,17 @@ const routes = [
         name: 'profile',
         path: '/user/:username',
         component: Profile
+    },
+    {
+        name:'search-listings',
+        path:'/search/listings',
+        component: SearchResult,
+        props: (route) => ({ query: route.query.q })
+    },
+    {
+        name:'search-user',
+        path:'/search/users',
+        component: SearchResult
     },
     {
         name: 'notfound',
