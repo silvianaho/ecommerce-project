@@ -40,7 +40,6 @@ Course : DIT/FT/1B/14
                 name="selectCategory"
                 v-model="newListing.fk_category_id"
                 required
-                @click="validateToken();"
               >
                 <option value="0" disabled selected>Select a category...</option>
                 <option
@@ -169,6 +168,8 @@ export default {
         });
     },
     onFileSelect(event) {
+      // eslint-disable-next-line no-console
+      console.log(event)
       var jpgExtension = new RegExp(/(.*)\.jpg/i);
       var file = event.target.files[0];
 

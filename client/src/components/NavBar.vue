@@ -8,6 +8,7 @@ Course : DIT/FT/1B/14
   <nav
     class="navbar navbar-expand-md navbar-light bg-white border-bottom"
     v-bind:class="{ 'navbarOpen': showNav }"
+    @notlogged-in="logout(); reload()"
   >
     <a class="navbar-brand ml-2">
       <router-link to="/" class="navbar-brand">SnapSell</router-link>
@@ -40,14 +41,12 @@ Course : DIT/FT/1B/14
         </div>
         <input
           type="text"
+          @change="search(selectedsearch, searchForm)"
           v-model="searchForm.title"
           class="form-control"
           aria-label="Text input with dropdown button"
         />
-        <button
-          class="btn btn-outline-secondary"
-          @click="search(selectedsearch, searchForm.title)"
-        >search</button>
+        <button class="btn btn-outline-secondary" @click="search(selectedsearch, searchForm)">search</button>
       </div>
 
       <ul class="navbar-nav ml-auto mr-2">
@@ -59,7 +58,7 @@ Course : DIT/FT/1B/14
         </li>
 
         <!-- if logged in -->
-        <li v-if="auth=='loggedin' || token!=null || token!=undefined" class="nav-item">
+        <li v-if="auth==true || token!=null || token!=undefined" class="nav-item">
           <div class="nav-link mr-4">
             <div class="row">
               <div class="col-6 p-0 m-0">
@@ -95,7 +94,7 @@ Course : DIT/FT/1B/14
           </div>
         </li>
 
-        <li v-if="auth=='loggedin' || token!=null || token!=undefined" class="nav-item">
+        <li v-if="auth==true || token!=null || token!=undefined" class="nav-item">
           <button class="btn btn-dark" v-bind:class="{ 'w-50': showNav }">
             <router-link to="/sell" class="nav-link text-white">Sell</router-link>
           </button>
@@ -108,8 +107,7 @@ Course : DIT/FT/1B/14
 <script>
 import EventBus from "./EventBus";
 import axios from "axios";
-import router from '../router';
-// import router from "../router";
+import router from "../router";
 
 export default {
   name: "NavBar",
@@ -125,14 +123,14 @@ export default {
       ],
       selectedsearch: 1,
       userinfo: [],
-      searchForm:{
+      searchForm: {
         title: "",
         minprice: "",
         maxprice: "",
         cond: "",
         category: "",
         lowerlimit: "",
-        count: "",
+        count: ""
       }
     };
   },
@@ -184,6 +182,7 @@ export default {
       this.auth = "";
       this.userid = null;
       this.token = null;
+      EventBus.$emit("notlogged-in");
     },
     reload() {
       location.reload();
@@ -191,7 +190,7 @@ export default {
     toggleNavbar() {
       this.showNav = !this.showNav;
     },
-    search(selectedsearch, title) {
+    search(selectedsearch, searchForm) {
       switch (selectedsearch) {
         case 1:
           axios
@@ -199,9 +198,11 @@ export default {
               params: this.searchForm
             })
             .then(result => {
-              // eslint-disable-next-line no-console
-              console.log(result);
-              router.push('/search/listings')
+              EventBus.$emit("searchtitle", searchForm.title);
+              EventBus.$emit("searchresult", result);
+              router.push(`/search/listings?title=${searchForm.title}`, {
+                query: { title: this.searchForm.title }
+              });
             })
             .catch(error => {
               // eslint-disable-next-line no-console
@@ -211,10 +212,8 @@ export default {
         case 2:
           break;
       }
-      // eslint-disable-next-line no-console
-      console.log(JSON.stringify(selectedsearch) + JSON.stringify(title));
     }
-  }
+  },
 };
 </script>
 

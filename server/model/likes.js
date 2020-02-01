@@ -21,7 +21,7 @@ var likesDB = {
     },
     usersWhoLikedThis: (id, callback) => {
         var sqlstring = `
-            SELECT u.username FROM
+            SELECT u.username, u.userid FROM
                 likes AS lk,
                 listings AS ls,
                 users AS u

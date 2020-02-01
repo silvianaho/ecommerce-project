@@ -189,15 +189,18 @@ var listingsDB = {
     searchListing: (queries, callback) => {
         var sqlstring = `
     SELECT
-        *
+        l.*, 
+        u.username
     FROM
-        snapsell.listings 
+        snapsell.listings AS l,
+        snapsell.users AS u
     WHERE
-        title REGEXP(?) AND
-        price >= ? AND
-        price <= ? AND
-        item_condition REGEXP(?) AND
-        fk_category_id REGEXP(?) 
+        l.title REGEXP(?) AND
+        l.price >= ? AND
+        l.price <= ? AND
+        l.item_condition REGEXP(?) AND
+        l.fk_category_id REGEXP(?) AND
+        u.userid = l.fk_poster_id
     LIMIT 
         ?, ?;`
 

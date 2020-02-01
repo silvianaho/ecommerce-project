@@ -14,7 +14,6 @@
 </template>
 
 <script>
-// import ListingsComponent from "../components/Listings";
 import axios from "axios";
 import router from "../router";
 

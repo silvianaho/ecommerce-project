@@ -46,14 +46,18 @@ const routes = [
         component: Profile
     },
     {
-        name:'search-listings',
-        path:'/search/listings',
+        name: 'search-listings',
+        path: '/search/listings',
         component: SearchResult,
-        props: (route) => ({ query: route.query.q })
+        props: (route) => {
+            // eslint-disable-next-line no-console
+            console.log(route.query)
+            return route.query || {}
+        }
     },
     {
-        name:'search-user',
-        path:'/search/users',
+        name: 'search-user',
+        path: '/search/users',
         component: SearchResult
     },
     {

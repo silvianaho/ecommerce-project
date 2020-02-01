@@ -620,7 +620,6 @@ app.get('/listings/category/:categoryid', (req, res) => {
 
 app.get('/search/listings', (req, res) => {
     console.log("Servicing GET /search/listings...");
-
     let queries = {
         title: req.query.title,
         minprice: req.query.minprice,
