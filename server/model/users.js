@@ -128,6 +128,7 @@ var usersDB = {
         })
     },
 
+    // 4.5 update password
     updatePwd: (data, callback) => {
         var sqlstring = "UPDATE users SET password=? WHERE userid=?";
 

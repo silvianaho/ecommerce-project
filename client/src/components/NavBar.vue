@@ -105,7 +105,7 @@ export default {
   name: "NavBar",
   data() {
     return {
-      auth: "",
+      auth: this.checkIfIsLogged(),
       token: localStorage.usertoken,
       userid: localStorage.userid,
       showNav: false,
@@ -118,25 +118,47 @@ export default {
     };
   },
   created() {
-    let config = {
-      headers: {
-        authorization: "Bearer " + localStorage.usertoken
-      }
-    };
-    axios
-      .get("http://localhost:3000/users/" + this.userid, config)
-      .then(result => {
-        this.userinfo = result.data;
-        // eslint-disable-next-line no-console
-        console.log(result.data);
-      })
-      .catch(error => {
-        // eslint-disable-next-line no-console
-        console.error(error);
-      });
-    // });
+    EventBus.$on("logged-in", () => {
+      // eslint-disable-next-line no-console
+      this.auth = this.checkIfIsLogged();
+      this.token = localStorage.usertoken;
+      this.userid = localStorage.userid;
+
+      let config = {
+        headers: {
+          authorization: "Bearer " + localStorage.usertoken
+        }
+      };
+      axios
+        .get("http://localhost:3000/users/" + this.userid, config)
+        .then(result => {
+          this.userinfo = result.data;
+        })
+        .catch(error => {
+          // eslint-disable-next-line no-console
+          console.error(error);
+        });
+      // });
+    });
+  },
+  mounted() {
+    let token = localStorage.usertoken;
+    if (token) {
+      this.auth = true;
+      EventBus.$emit("logged-in", "loggedin");
+    } else {
+      this.auth = false;
+    }
   },
   methods: {
+    checkIfIsLogged() {
+      let token = localStorage.usertoken;
+      if (token) {
+        return true;
+      } else {
+        return false;
+      }
+    },
     logout() {
       localStorage.removeItem("usertoken");
       localStorage.removeItem("userid");
@@ -149,35 +171,6 @@ export default {
     },
     toggleNavbar() {
       this.showNav = !this.showNav;
-    },
-    // validateToken() {
-    //   let config = {
-    //     headers: {
-    //       authorization: "Bearer " + localStorage.usertoken
-    //     }
-    //   };
-    //   axios
-    //     .post("http://localhost:3000/validate", null, config)
-    //     .then(result => {
-    //       // eslint-disable-next-line no-console
-    //       console.log(result);
-    //       this.emitMethod();
-    //     })
-    //     .catch(error => {
-    //       if (error.response.status === 401) {
-    //         this.logout();
-    //       }
-    //     });
-    // },
-    emitMethod() {
-      EventBus.$emit("logged-in", "loggedin");
-    }
-  },
-  computed: {
-    filteredList() {
-      return this.postList.filter(post => {
-        return post.title.toLowerCase().includes(this.search.toLowerCase());
-      });
     }
   }
 };

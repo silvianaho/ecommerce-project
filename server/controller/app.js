@@ -396,7 +396,10 @@ app.post('/login', (req, res) => {
             res.status(500).type("json").send(JSON.stringify(err));
         } else {
             if (result == null) {
-                res.status(400).type("json").send(JSON.stringify("Unauthorized"));
+                let output = {
+                    error: "Wrong username/password. Please try again."
+                }
+                res.status(400).type("json").send(output);
             } else {
                 const payload = { userid: result.userid };
                 const options = {
@@ -595,7 +598,7 @@ app.get('/fe/listings', (req, res) => {
 // 24. Get listings per category
 app.get('/listings/category/:categoryid', (req, res) => {
     console.log("Servicing GET /listings/category/:categoryid...");
-    
+
     var categoryid = req.params.categoryid;
     categories.getListingsByCat(categoryid, (err, result) => {
         if (!err) {
@@ -614,15 +617,32 @@ app.get('/listings/category/:categoryid', (req, res) => {
     })
 })
 
-app.get('/search', (req, res) => {
+app.get('/listings/search', (req, res) => {
     console.log("Servicing GET /search...");
 
-    let queries ={
+
+    let queries = {
         title: req.query.title,
         minprice: req.query.minprice,
         maxprice: req.query.maxprice,
-        cond: req.query.cond
-    } 
+        cond: req.query.cond,
+        category: req.query.category,
+        lowerlimit: req.query.lowerlimit,
+        count: req.query.count,
+    }
+
+    if (queries.minprice < 0 || queries.minprice >= queries.maxprice || isNaN(queries.minprice)) {
+        res.status(400).type("json").send({error: "Invalid min price value. Please enter a positive integer that is smaller than the max price"});
+        return;
+    }
+    if (queries.maxprice < 0 || queries.minprice >= queries.maxprice || isNaN(queries.maxprice)) {
+        res.status(400).type("json").send({error: "Invalid max price value. Please enter a positive integer that is larger than the min price"});
+        return;
+    }
+    if (queries.cond != "") {
+        res.status(400).type("json").send({error: "Invalid min price value. Please enter a positive integer that is smaller than the max price"});
+        return;
+    }
 
     listings.searchListing(queries, (err, result) => {
         if (!err) {

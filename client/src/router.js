@@ -7,7 +7,9 @@ Course: DIT/FT/1B/14
 import Vue from 'vue'
 import Router from 'vue-router'
 // @ts-ignore
-import Listings from './components/Listings';
+// import Listings from './components/Listings';
+// @ts-ignore
+import HomepageListings from './pages/HomepageListings';
 // @ts-ignore
 import AddListing from './components/AddListing';
 // @ts-ignore
@@ -24,7 +26,7 @@ const routes = [
     {
         name: 'listings',
         path: '/',
-        component: Listings
+        component: HomepageListings
     },
     {
         name: 'addListings',

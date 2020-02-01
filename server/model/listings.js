@@ -187,37 +187,62 @@ var listingsDB = {
     },
 
     searchListing: (queries, callback) => {
-        var sqlstring = "SELECT * FROM listings";
+        var sqlstring = `
+    SELECT
+        *
+    FROM
+        snapsell.listings 
+    WHERE
+        title REGEXP(?) AND
+        price >= ? AND
+        price <= ? AND
+        item_condition REGEXP(?) AND
+        fk_category_id REGEXP(?) 
+    LIMIT 
+        ?, ?;`
 
-        db.connection.query(sqlstring, [], (err, result) => {
+        if (queries.title == "" || queries.title == undefined) {
+            queries.title = ".*?"
+        }
+        if (queries.minprice == "" || queries.minprice == undefined) {
+            queries.minprice = 0
+        }
+        if (queries.maxprice == "" || queries.maxprice == undefined) {
+            queries.maxprice = 999999999999.99
+        }
+        if (queries.cond == "" || queries.cond == undefined) {
+            queries.cond = ".*?"
+        }
+        if (queries.category == "" || queries.category == undefined) {
+            queries.category = ".*?"
+        }
+        if (queries.lowerlimit == "" || queries.lowerlimit == undefined) {
+            queries.lowerlimit = 0
+        }
+        if (queries.count == "" || queries.count == undefined) {
+            queries.count = 10
+        }
+
+        let values = [
+            queries.title,
+            queries.minprice,
+            queries.maxprice,
+            queries.cond,
+            queries.category,
+            parseInt(queries.lowerlimit),
+            parseInt(queries.count)
+        ] 
+
+        console.log(values)
+        
+        db.connection.query(sqlstring, values, (err, result) => {
             if (err) {
                 return callback(err, null);
             } else {
                 if (result.length == 0) {
                     return callback(null, null);
-                } else {
-                    var srTitle = []
-                    var srMinprice = []
-                    var srMaxprice = []
-                    var srCond = []
-                    var searchResult = []
-                    // if there's a title
-                    if (queries.title) {
-                        let expr = new RegExp(queries.title, "i")
-                        result.forEach(listing => {
-                            let sr = expr.test(listing.title)
-                            if (sr) {
-                                srTitle.push(listing)
-                            }
-                        });
-                        console.log(srTitle)
-                    }
-                    
-                    if (queries.minprice) {
-                        
-                    }
-                    
-                    return callback(null, srTitle);
+                } else {                    
+                    return callback(null, result);
                 }
             }
         })
