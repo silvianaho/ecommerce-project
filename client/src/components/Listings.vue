@@ -42,7 +42,7 @@ Course : DIT/FT/1B/14
         <small class="ml-1">{{listing.likeCount}}</small>
         <small class="ml-1">
           Posted by:
-          <router-link :to="'/user/' + listing.username">{{listing.username}}</router-link>
+          <router-link :to="'/user/' + listing.username" @click="$emit('toUserProfile', listing.username)">{{listing.username}}</router-link>
         </small>
       </div>
     </div>

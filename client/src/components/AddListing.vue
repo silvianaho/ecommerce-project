@@ -176,18 +176,12 @@ export default {
       if (file.size > 1000000 || !jpgExtension.test(file.name)) {
         this.errors.pic = "Please attach a .jpg file below 1MB";
       } else {
-        // eslint-disable-next-line no-console
-        console.log(event);
-        // eslint-disable-next-line no-console
-        console.log(event.target.files[0]);
-        // eslint-disable-next-line no-console
-        console.log(URL.createObjectURL(event.target.files[0]));
         this.picurl = URL.createObjectURL(event.target.files[0]);
         this.errors.pic = null;
         this.newListing.file = event.target.files[0];
       }
     },
-    async addListing() {
+    addListing() {
       const formData = new FormData();
       formData.append("title", this.newListing.title);
       formData.append("description", this.newListing.description);

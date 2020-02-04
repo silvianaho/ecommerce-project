@@ -72,6 +72,23 @@ var usersDB = {
             }
         })
     },
+    
+    findUsernamebyID: (id, callback) => {
+        var sqlstring = "SELECT username FROM users WHERE userid=?";
+
+        db.connection.query(sqlstring, id, (err, result) => {
+            if (err) {
+                console.log(err);
+                return callback(err, null);
+            } else {
+                if (result.length == 0) {
+                    return callback(null, null);
+                } else {
+                    return callback(null, result);
+                }
+            }
+        })
+    },
 
     // Extra: get userinfo from users table by username (case sensitive, absolute)
     findUserbyUsername: (username, callback) => {

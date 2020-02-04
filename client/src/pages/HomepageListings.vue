@@ -10,6 +10,12 @@
         @unlike-listing="unlikeListing(listing)"
       ></listings-component>
     </div>
+
+    <button
+      v-if="listings.length >= (((limits.lowerlimit/limits.count)+1)*limits.count)"
+      class="btn btn-outline-dark my-4"
+      @click="seeMore(limits)"
+    >See More</button>
   </div>
 </template>
 
@@ -24,19 +30,24 @@ export default {
       listings: [],
       likeForm: {
         userid: null
+      },
+      limits: {
+        lowerlimit: 0,
+        count: 12
       }
     };
   },
   created() {
-    this.getListings();
+    this.getListings(this.limits);
   },
   methods: {
-    getListings() {
+    getListings(limits) {
       if (localStorage.userid) {
         let config = {
           headers: {
             authorization: "Bearer " + localStorage.usertoken
-          }
+          },
+          params: limits
         };
 
         axios
@@ -45,7 +56,13 @@ export default {
             config
           )
           .then(result => {
-            this.listings = result.data;
+            if (result.data.length == 0) {
+              alert("No more post");
+              return;
+            }
+            result.data.forEach(listing => {
+              this.listings.push(listing);
+            });
 
             // map the likecounts to this.listings
             this.listings.map((listing, index) => {
@@ -82,9 +99,18 @@ export default {
           });
       } else {
         axios
-          .get("http://localhost:3000/fe/listings/")
+          .get("http://localhost:3000/fe/listings/", {
+            params: limits
+          })
           .then(result => {
-            this.listings = result.data;
+            if (result.data.length == 0) {
+              alert("No more post");
+              return;
+            }
+
+            result.data.forEach(listing => {
+              this.listings.push(listing);
+            });
             // map the likecounts to this.listings
             this.listings.map((listing, index) => {
               axios
@@ -164,6 +190,14 @@ export default {
     },
     getImage(listingsid) {
       return "http://localhost:3000/listings/" + listingsid + "/picture";
+    },
+    seeMore(limits) {
+      limits.lowerlimit = this.listings.length;
+      // eslint-disable-next-line no-console
+      console.log(
+        "lowerlimit" + limits.lowerlimit + "\n" + JSON.stringify(limits)
+      );
+      this.getListings(limits);
     }
   }
 };

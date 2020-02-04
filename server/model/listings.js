@@ -174,10 +174,13 @@ var listingsDB = {
     },
 
     // for front end
-    allListingsFE: (callback) => {
-        var sqlstring = "SELECT l.*, u.username FROM snapsell.listings AS l, snapsell.users AS u WHERE u.userid = l.fk_poster_id;";
-
-        db.connection.query(sqlstring, [], (err, result) => {
+    allListingsFE: (data, callback) => {
+        var sqlstring = "SELECT l.*, u.username FROM snapsell.listings AS l, snapsell.users AS u WHERE u.userid = l.fk_poster_id LIMIT ?, ?;";
+        let values = [
+            parseInt(data.lowerlimit),
+            parseInt(data.count)
+        ]
+        db.connection.query(sqlstring, values, (err, result) => {
             if (err) {
                 return callback(err, null);
             } else {
@@ -222,7 +225,7 @@ var listingsDB = {
             queries.category,
             parseInt(queries.lowerlimit),
             parseInt(queries.count)
-        ] 
+        ]
 
         db.connection.query(sqlstring, values, (err, result) => {
             if (err) {
@@ -230,7 +233,7 @@ var listingsDB = {
             } else {
                 if (result.length == 0) {
                     return callback(null, null);
-                } else {                    
+                } else {
                     return callback(null, result);
                 }
             }

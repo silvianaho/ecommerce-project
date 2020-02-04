@@ -41,14 +41,18 @@ var likesDB = {
     },
     listingLikedByUser: (id, callback) => {
         var sqlstring = `
-            SELECT ls.* FROM
-                likes AS lk,
-                listings AS ls,
-                users AS u
-            WHERE 
-                lk.fk_liker_id=? AND 
-                ls.listingsid=lk.fk_listing_id AND
-                u.userid = lk.fk_liker_id;`
+        SELECT 
+            ls.*, u.username
+        FROM
+            likes AS lk,
+            listings AS ls
+        LEFT JOIN 
+            users AS u
+        ON 
+            ls.fk_poster_id = u.userid
+        WHERE 
+            lk.fk_liker_id = ? AND 
+            ls.listingsid = lk.fk_listing_id`
 
         db.connection.query(sqlstring, id, (err, result) => {
             if (err) {

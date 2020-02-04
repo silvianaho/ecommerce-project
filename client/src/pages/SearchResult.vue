@@ -83,10 +83,15 @@
           </div>
         </div>
         <button class="btn btn-dark" @click="search()">Search</button>
+        <button class="btn btn-outline-dark my-3" @click="resetsearch()">Reset</button>
       </div>
       <div class="container-fluid col-md-9 border h-100 w-100">
         <div class="row py-3">
+          <div class="w-100 text-center" v-if="searchSuccess === false">
+            <not-found />
+          </div>
           <listings-component
+            v-else
             v-for="listing in listings"
             :key="listing.listingsid"
             :listing="listing"
@@ -95,6 +100,11 @@
             @unlike-listing="unlikeListing(listing)"
           ></listings-component>
         </div>
+        <button
+          class="btn btn-outline-dark my-4"
+          v-if="listings.length >= (((searchForm.lowerlimit/searchForm.count)+1)*searchForm.count)"
+          @click="seeMore(searchForm)"
+        >See More</button>
       </div>
     </div>
   </div>
@@ -104,10 +114,13 @@
 import EventBus from "../components/EventBus";
 import axios from "axios";
 import router from "../router";
+import NotFound from "../components/NotFound";
 
 export default {
   name: "SearchResult",
-  //   props: ["searchForm"],
+  components: {
+    "not-found": NotFound
+  },
   data() {
     return {
       categories: [],
@@ -133,7 +146,8 @@ export default {
         category: "",
         lowerlimit: 0,
         count: 12
-      }
+      },
+      searchSuccess: true
     };
   },
   created() {
@@ -142,10 +156,14 @@ export default {
       this.searchForm.title = result;
     });
     EventBus.$on("searchresult", result => {
-      this.listings = result.data;
+      if (result.length == null) {
+        this.searchSuccess = true;
+      }
+      result.data.forEach(listing => {
+        this.listings.push(listing);
+      });
 
       if (localStorage.userid) {
-        // this.listings.forEach(listing => {
         this.listings.map((listing, index) => {
           axios
             .get(`http://localhost:3000/listings/${listing.listingsid}/likes`)
@@ -167,8 +185,29 @@ export default {
               console.error(error);
             });
         });
-        // });
+      } else {
+        this.listings.map((listing, index) => {
+          axios
+            .get(
+              "http://localhost:3000/listings/" + listing.listingsid + "/likes"
+            )
+            .then(lc_result => {
+              listing.likeCount = lc_result.data.likeCount;
+              this.$set(
+                this.listings,
+                index,
+                JSON.parse(JSON.stringify(listing))
+              );
+            })
+            .catch(lc_error => {
+              // eslint-disable-next-line no-console
+              console.error(lc_error);
+            });
+        });
       }
+    });
+    EventBus.$on("no-searchresult", result => {
+      this.searchSuccess = result;
     });
     this.getCategories();
   },
@@ -183,17 +222,23 @@ export default {
           this.$router.push({
             query: Object.assign({}, this.$route.query, this.searchForm)
           });
-
-          // params: this.searchForm
-          // eslint-disable-next-line no-console
-          //   console.log(router.query)
-          // eslint-disable-next-line no-console
-          console.log(this.searchForm);
+          this.searchSuccess = true;
         })
         .catch(error => {
-          // eslint-disable-next-line no-console
-          console.error(error);
+          EventBus.$emit("no-searchresult", this.searchSuccess);
+          if (error.message == "Request failed with status code 404") {
+            this.searchSuccess = false;
+          }
         });
+    },
+    resetsearch() {
+      this.searchForm.minprice = "";
+      this.searchForm.maxprice = "";
+      this.searchForm.cond = "";
+      this.searchForm.category = "";
+      this.searchForm.lowerlimit = 0;
+      this.searchForm.count = 12;
+      this.search();
     },
     getCategories() {
       axios
@@ -259,6 +304,14 @@ export default {
     },
     getImage(listingsid) {
       return "http://localhost:3000/listings/" + listingsid + "/picture";
+    },
+    seeMore(searchForm) {
+      searchForm.lowerlimit = this.listings.length;
+      // eslint-disable-next-line no-console
+      console.log(
+        "lowerlimit" + searchForm.lowerlimit + "\n" + JSON.stringify(searchForm)
+      );
+      this.search(searchForm);
     }
   }
 };

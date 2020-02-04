@@ -556,10 +556,20 @@ app.get('/fe/:userid/listings', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing GET /:userid/fe/listings...");
 
     let data = {
+        lowerlimit: req.query.lowerlimit,
+        count: req.query.count,
         userid: req.params.userid,
     }
 
-    listings.allListingsFE((l_err, l_result) => {
+
+    if (data.lowerlimit == "" || data.lowerlimit == undefined || isNaN(parseInt(data.lowerlimit))) {
+        data.lowerlimit = 0
+    }
+    if (data.count == "" || data.count == undefined || isNaN(parseInt(data.count))) {
+        data.count = 12
+    }
+
+    listings.allListingsFE(data, (l_err, l_result) => {
         likes.listingLikedByUser(data.userid, (ul_err, ul_result) => {
             if (!l_err || !ul_err) {
                 for (const item of l_result) {
@@ -586,8 +596,21 @@ app.get('/fe/:userid/listings', isLoggedInMiddleware, (req, res) => {
 // 23. Listings for Front End (Loggedout user)
 app.get('/fe/listings', (req, res) => {
     console.log("Servicing GET /fe/listings...");
-    listings.allListingsFE((err, result) => {
+    let data = {
+        lowerlimit: req.query.lowerlimit,
+        count: req.query.count,
+    }
+
+    if (data.lowerlimit == "" || data.lowerlimit == undefined || isNaN(parseInt(data.lowerlimit))) {
+        data.lowerlimit = 0
+    }
+    if (data.count == "" || data.count == undefined || isNaN(parseInt(data.count))) {
+        data.count = 12
+    }
+
+    listings.allListingsFE(data, (err, result) => {
         if (!err) {
+            console.log(result.length)
             res.status(200).type("json").send(result)
         } else {
             res.status(500).type("json").send(err)
@@ -634,14 +657,14 @@ app.get('/search/listings', (req, res) => {
     if (queries.minprice == "" || queries.minprice == undefined || isNaN(parseInt(queries.minprice))) {
         queries.minprice = 0
     }
-    if (queries.maxprice == "" || queries.maxprice == undefined || isNaN(parseInt(queries.minprice))) {
+    if (queries.maxprice == "" || queries.maxprice == undefined || isNaN(parseInt(queries.maxprice))) {
         queries.maxprice = 999999999999.99
     }
-    if (queries.lowerlimit == "" || queries.lowerlimit == undefined || isNaN(parseInt(queries.minprice))) {
+    if (queries.lowerlimit == "" || queries.lowerlimit == undefined || isNaN(parseInt(queries.lowerlimit))) {
         queries.lowerlimit = 0
     }
-    if (queries.count == "" || queries.count == undefined || isNaN(parseInt(queries.minprice))) {
-        queries.count = 10
+    if (queries.count == "" || queries.count == undefined || isNaN(parseInt(queries.count))) {
+        queries.count = 12
     }
 
     // check if value is valid or not

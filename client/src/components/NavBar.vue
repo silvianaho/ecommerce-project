@@ -131,7 +131,8 @@ export default {
         category: "",
         lowerlimit: "",
         count: ""
-      }
+      },
+      searchSuccess: false
     };
   },
   created() {
@@ -198,6 +199,8 @@ export default {
               params: this.searchForm
             })
             .then(result => {
+              // eslint-disable-next-line no-console
+              console.log(searchForm.title);
               EventBus.$emit("searchtitle", searchForm.title);
               EventBus.$emit("searchresult", result);
               router.push(`/search/listings?title=${searchForm.title}`, {
@@ -205,15 +208,19 @@ export default {
               });
             })
             .catch(error => {
+              EventBus.$emit("no-searchresult", this.searchSuccess = false);
               // eslint-disable-next-line no-console
               console.error(error);
+              router.push(`/search/listings?title=${searchForm.title}`, {
+                query: { title: this.searchForm.title }
+              });
             });
           break;
         case 2:
           break;
       }
     }
-  },
+  }
 };
 </script>
 
