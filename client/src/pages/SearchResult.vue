@@ -82,7 +82,7 @@
             />
           </div>
         </div>
-        <button class="btn btn-dark" @click="search()">Search</button>
+        <button class="btn btn-dark" @click="search(searchForm)">Search</button>
         <button class="btn btn-outline-dark my-3" @click="resetsearch()">Reset</button>
       </div>
       <div class="container-fluid col-md-9 border h-100 w-100">
@@ -102,7 +102,7 @@
         </div>
         <button
           class="btn btn-outline-dark my-4"
-          v-if="listings.length >= (((searchForm.lowerlimit/searchForm.count)+1)*searchForm.count)"
+          v-if="listings.length < (((searchForm.lowerlimit/searchForm.count)+1)*searchForm.count)"
           @click="seeMore(searchForm)"
         >See More</button>
       </div>
@@ -144,6 +144,7 @@ export default {
         maxprice: "",
         cond: "",
         category: "",
+        userid: localStorage.userid,
         lowerlimit: 0,
         count: 12
       },
@@ -151,18 +152,20 @@ export default {
     };
   },
   created() {
-    this.search();
+    this.search(this.searchForm);
     EventBus.$on("searchtitle", result => {
-      this.searchForm.title = result;
+      this.searchForm.title = result[0];
+      this.searchForm.userid = result[1];
     });
     EventBus.$on("searchresult", result => {
+      this.listings = []
       if (result.length == null) {
         this.searchSuccess = true;
       }
       result.data.forEach(listing => {
         this.listings.push(listing);
       });
-
+      // this.listings = result.data
       if (localStorage.userid) {
         this.listings.map((listing, index) => {
           axios
@@ -212,15 +215,67 @@ export default {
     this.getCategories();
   },
   methods: {
-    search() {
+    search(searchForm) {
       axios
         .get("http://localhost:3000/search/listings", {
-          params: this.searchForm
+          params: searchForm
         })
         .then(result => {
-          EventBus.$emit("searchresult", result);
+          if (result.length == null) {
+            this.searchSuccess = true;
+          }
+          result.data.forEach(listing => {
+            this.listings.push(listing);
+          });
+          // this.listings = result.data
+          if (localStorage.userid) {
+            this.listings.map((listing, index) => {
+              axios
+                .get(
+                  `http://localhost:3000/listings/${listing.listingsid}/likes`
+                )
+                .then(result => {
+                  listing.likeCount = result.data.likers.length;
+                  result.data.likers.forEach(liker => {
+                    if (liker.userid == localStorage.userid) {
+                      listing.liked = true;
+                    }
+                  });
+                  this.$set(
+                    this.listings,
+                    index,
+                    JSON.parse(JSON.stringify(listing))
+                  );
+                })
+                .catch(error => {
+                  // eslint-disable-next-line no-console
+                  console.error(error);
+                });
+            });
+          } else {
+            this.listings.map((listing, index) => {
+              axios
+                .get(
+                  "http://localhost:3000/listings/" +
+                    listing.listingsid +
+                    "/likes"
+                )
+                .then(lc_result => {
+                  listing.likeCount = lc_result.data.likeCount;
+                  this.$set(
+                    this.listings,
+                    index,
+                    JSON.parse(JSON.stringify(listing))
+                  );
+                })
+                .catch(lc_error => {
+                  // eslint-disable-next-line no-console
+                  console.error(lc_error);
+                });
+            });
+          }
           this.$router.push({
-            query: Object.assign({}, this.$route.query, this.searchForm)
+            query: Object.assign({}, this.$route.query, searchForm)
           });
           this.searchSuccess = true;
         })
@@ -238,7 +293,7 @@ export default {
       this.searchForm.category = "";
       this.searchForm.lowerlimit = 0;
       this.searchForm.count = 12;
-      this.search();
+      this.search(this.searchForm);
     },
     getCategories() {
       axios
@@ -307,11 +362,15 @@ export default {
     },
     seeMore(searchForm) {
       searchForm.lowerlimit = this.listings.length;
-      // eslint-disable-next-line no-console
-      console.log(
-        "lowerlimit" + searchForm.lowerlimit + "\n" + JSON.stringify(searchForm)
-      );
       this.search(searchForm);
+    }
+  },
+  watch:{
+    $route(to) {
+      // eslint-disable-next-line no-console
+      console.log(to)
+      this.listings = []
+      // this.getUserInfo(to.params.username);
     }
   }
 };

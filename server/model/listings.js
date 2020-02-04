@@ -192,18 +192,23 @@ var listingsDB = {
     searchListing: (queries, callback) => {
         var sqlstring = `
     SELECT
-        l.*, 
+        ls.*, 
         u.username
     FROM
-        snapsell.listings AS l,
-        snapsell.users AS u
+        listings AS ls
+    LEFT JOIN 
+        users AS u
+    ON 
+        ls.fk_poster_id = u.userid
     WHERE
-        l.title REGEXP(?) AND
-        l.price >= ? AND
-        l.price <= ? AND
-        l.item_condition REGEXP(?) AND
-        l.fk_category_id REGEXP(?) AND
-        u.userid = l.fk_poster_id
+        ls.title REGEXP(?) AND
+        ls.price >= ? AND
+        ls.price <= ? AND
+        ls.item_condition REGEXP(?) AND
+        ls.fk_category_id REGEXP(?) AND
+        ls.fk_poster_id != ?
+    ORDER BY 
+	    ls.listingsid ASC
     LIMIT 
         ?, ?;`
 
@@ -223,6 +228,7 @@ var listingsDB = {
             queries.maxprice,
             queries.cond,
             queries.category,
+            parseInt(queries.userid),
             parseInt(queries.lowerlimit),
             parseInt(queries.count)
         ]
@@ -238,8 +244,8 @@ var listingsDB = {
                 }
             }
         })
+    },
 
-    }
 }
 
 module.exports = listingsDB;

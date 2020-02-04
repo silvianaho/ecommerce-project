@@ -63,8 +63,8 @@ Course : DIT/FT/1B/14
             <div class="row">
               <div class="col-6 p-0 m-0">
                 <img
-                  v-if="userinfo[0] != undefined"
-                  :src="userinfo[0].profile_pic_url"
+                  v-if="userinfo != undefined"
+                  :src="userinfo.profile_pic_url"
                   class="rounded-circle img-fluid"
                   width="40px"
                   height="40px"
@@ -81,8 +81,8 @@ Course : DIT/FT/1B/14
                   <b-dropdown-item>
                     <router-link
                       class="text-dark text-decoration-none"
-                      v-if="userinfo[0] != undefined"
-                      :to="'/user/'+userinfo[0].username"
+                      v-if="userinfo != undefined"
+                      :to="'/user/'+userinfo.username"
                     >Profile</router-link>
                   </b-dropdown-item>
                   <b-dropdown-item v-on:click="logout(); reload()">
@@ -129,6 +129,7 @@ export default {
         maxprice: "",
         cond: "",
         category: "",
+        userid: localStorage.userid,
         lowerlimit: "",
         count: ""
       },
@@ -201,7 +202,7 @@ export default {
             .then(result => {
               // eslint-disable-next-line no-console
               console.log(searchForm.title);
-              EventBus.$emit("searchtitle", searchForm.title);
+              EventBus.$emit("searchtitle", [searchForm.title, searchForm.userid]);
               EventBus.$emit("searchresult", result);
               router.push(`/search/listings?title=${searchForm.title}`, {
                 query: { title: this.searchForm.title }

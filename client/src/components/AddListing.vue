@@ -195,7 +195,6 @@ export default {
           headers: {
             "Content-Type": "multipart/form-data",
             authorization: "Bearer " + localStorage.usertoken
-
           }
         })
         .then(result => {

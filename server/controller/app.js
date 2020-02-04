@@ -649,6 +649,7 @@ app.get('/search/listings', (req, res) => {
         maxprice: req.query.maxprice,
         cond: req.query.cond,
         category: req.query.category,
+        userid: req.query.userid,
         lowerlimit: req.query.lowerlimit,
         count: req.query.count,
     }
@@ -659,6 +660,9 @@ app.get('/search/listings', (req, res) => {
     }
     if (queries.maxprice == "" || queries.maxprice == undefined || isNaN(parseInt(queries.maxprice))) {
         queries.maxprice = 999999999999.99
+    }
+    if (queries.userid == "" || queries.userid == undefined || isNaN(parseInt(queries.userid))) {
+        queries.userid = 0
     }
     if (queries.lowerlimit == "" || queries.lowerlimit == undefined || isNaN(parseInt(queries.lowerlimit))) {
         queries.lowerlimit = 0

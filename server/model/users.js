@@ -67,7 +67,7 @@ var usersDB = {
                 if (result.length == 0) {
                     return callback(null, null);
                 } else {
-                    return callback(null, result);
+                    return callback(null, result[0]);
                 }
             }
         })
