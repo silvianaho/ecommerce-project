@@ -15,7 +15,7 @@ import AddListing from './components/AddListing';
 // @ts-ignore
 import LogIn from './components/LogIn';
 // @ts-ignore
-import Profile from './components/Profile';
+import Profile from './pages/Profile';
 // @ts-ignore
 import SearchResult from './pages/SearchResult';
 // @ts-ignore
