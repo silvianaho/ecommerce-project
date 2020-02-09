@@ -62,18 +62,18 @@ Second method (all images):
 1. Get all users                                (http://localhost:3000/users)
 2. Create a new user                            (http://localhost:3000/users)
 3. Get user by id                               (http://localhost:3000/users/:userid)
-4. Update user                                  (http://localhost:3000/users/:userid)
-5. Get all listings by user                     (http://localhost:3000/users/:userid/listings)
-6. Get all listings                             (http://localhost:3000/listings)
-7. Get listings by listing id                   (http://localhost:3000/listings/:listingsid)
-8. Add new listing                              (http://localhost:3000/listings)
-9.  Delete listing                              (http://localhost:3000/listings:listingsid)
-10. Update a listing                            (http://localhost:3000/listings:listingsid)
-11. Get all offers for a listing                (http://localhost:3000/listings:listingsid/offers)
-12. Add a new offer to a listing                (http://localhost:3000/listings:listingsid/offers)
-13. Get all Categories                          (http://localhost:3000/categories)
-14. Login                                       (http://localhost:3000/login)
-15. Validate token                              (http://localhost:3000/validate)
+4. Update user                                  (http://localhost:3000/users/:userid/profile)
+5. Update password                              (http://localhost:3000/users/:userid/pwd)
+6. Get all listings by user                     (http://localhost:3000/users/:userid/listings)
+7. Get all listings                             (http://localhost:3000/listings)
+8. Get listings by listing id                   (http://localhost:3000/listings/:listingsid)
+9. Add new listing                              (http://localhost:3000/listings)
+10. Delete listing                              (http://localhost:3000/listings:listingsid)
+11. Update a listing                            (http://localhost:3000/listings:listingsid)
+12. Get all offers for a listing                (http://localhost:3000/listings:listingsid/offers)
+13. Add a new offer to a listing                (http://localhost:3000/listings:listingsid/offers)
+14. Get all Categories                          (http://localhost:3000/categories)
+15. Login                                       (http://localhost:3000/login)
 16. Get users that liked this item              (http://localhost:3000/listings/:listingsid/likes)
 17. Get items liked by user                     (http://localhost:3000/users/:userid/likes)
 18. Like a listing                              (http://localhost:3000/listings/:listingid/likes)
@@ -83,14 +83,15 @@ Second method (all images):
 22. Listings for Front End (Logged in user)     (http://localhost:3000/:userid/fe/listings)
 23. Listings for Front End (Logged out user)    (http://localhost:3000/fe/listings)
 24. Find listings by category                   (http://localhost:3000/listings/category/:listingsid)
+25. Search by all listing criterias             (http://localhost:3000/search/listings)
 
 ---
 
 # Additional features
 |No |   Feature                          |  Endpoints   |
 |---|------------------------------------|--------------|
-|1. |Like and Unlike                     |   (16-19)    |
-|2. |Upload and get images               | (8, 10, 20)  |
-|3. |Password hashing                    |   (2 & 4)    |
-|4. |User validation with jsonwebtoken   |   (14-15)    |
-|5. |Categories                          |  (13 & 24)   |
+|1. |Like and Unlike                     |  (18 & 19)   |
+|2. |Pagination in search place          |  (22 & 23)   |
+|3. |Showing Like Counts                 |     (16)     |
+|4. |Image Uploading                     |   (9 & 11)   |
+|5. |Modify Profile Info                 |   (4 & 5)  |

@@ -160,6 +160,7 @@ app.put('/users/:userid/profile', isLoggedInMiddleware, (req, res) => {
 
 });
 
+// 5. update password
 app.put('/users/:userid/pwd', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing PUT /users/:userid/pwd...");
 
@@ -179,7 +180,7 @@ app.put('/users/:userid/pwd', isLoggedInMiddleware, (req, res) => {
 
 });
 
-// 5. get all listings by user
+// 6. get all listings by user
 app.get('/users/:userid/listings', (req, res) => {
     console.log("Servicing GET /users/:userid/listings...");
 
@@ -219,7 +220,7 @@ app.get('/users/:userid/listings', (req, res) => {
     })
 });
 
-// 6. get all listings
+// 7. get all listings
 app.get('/listings', (req, res) => {
     console.log("Servicing GET /listings...");
 
@@ -233,7 +234,7 @@ app.get('/listings', (req, res) => {
     })
 });
 
-// 7. get listings by listing id
+// 8. get listings by listing id
 app.get('/listings/:listingid', (req, res) => {
     console.log("Servicing GET /listings/:listingid...");
 
@@ -255,7 +256,7 @@ app.get('/listings/:listingid', (req, res) => {
     })
 });
 
-// 8. add new listing
+// 9. add new listing
 app.post('/listings', isLoggedInMiddleware, upload.single('file'), (req, res) => {
     console.log("Servicing POST /listings...");
 
@@ -284,23 +285,44 @@ app.post('/listings', isLoggedInMiddleware, upload.single('file'), (req, res) =>
     })
 });
 
-// 9. delete listing
+// 10. delete listing
 app.delete('/listings/:listingid', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing DELETE /listings/:listingid...");
 
     var listingid = req.params.listingid;
+    let userid = req.decodedToken.userid
 
-    listings.deleteListing(listingid, (err, result) => {
-        if (!err) {
-            res.status(204).type("json").send(JSON.stringify(result));
-        }
-        else {
-            res.status(500).type("json").send(JSON.stringify(err));
+    listings.findListingbyID(listingid, (f_err, f_result) => {
+
+        if (f_err) {
+            res.status(500).type("json").send(JSON.stringify(f_err));
+        } else {
+            if (f_result == null) {
+                let output = {
+                    message: "Listing not found. Please provide a valid listingID"
+                }
+                res.status(400).type("json").send(JSON.stringify(output));
+            } else if (f_result[0].fk_poster_id == userid) {
+                listings.deleteListing(listingid, (err, result) => {
+                    if (!err) {
+                        res.status(204).type("json").send(JSON.stringify(result));
+                    }
+                    else {
+                        res.status(500).type("json").send(JSON.stringify(err));
+                    }
+                })
+            }
+            else {
+                let output = {
+                    message: "Unauthorized [3]"
+                }
+                res.status(400).type("json").send(JSON.stringify(output));
+            }
         }
     })
 })
 
-// 10. update a listing
+// 11. update a listing
 app.put('/listings/:listingid', isLoggedInMiddleware, upload.single('file'), (req, res) => {
     console.log("Servicing PUT /listings/:listingid...");
 
@@ -327,7 +349,7 @@ app.put('/listings/:listingid', isLoggedInMiddleware, upload.single('file'), (re
 
 });
 
-// 11. get all offers for a listing
+// 12. get all offers for a listing
 app.get('/listings/:listingid/offers', (req, res) => {
     console.log("Servicing GET /listings/:listingid/offers...");
 
@@ -350,7 +372,7 @@ app.get('/listings/:listingid/offers', (req, res) => {
     })
 })
 
-// 12. add a new offer to a listing
+// 13. add a new offer to a listing
 app.post('/listings/:listingid/offers', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing POST /users...");
 
@@ -404,7 +426,7 @@ app.post('/listings/:listingid/offers', isLoggedInMiddleware, (req, res) => {
 
 });
 
-// 13. Get all Categories
+// 14. Get all Categories
 app.get('/categories', (req, res) => {
     console.log("Servicing GET /categories...");
 
@@ -418,7 +440,7 @@ app.get('/categories', (req, res) => {
     })
 })
 
-// 14. Login
+// 15. Login
 app.post('/login', (req, res) => {
     console.log("Servicing POST /login...");
     var data = {
@@ -459,7 +481,7 @@ app.post('/login', (req, res) => {
     })
 })
 
-// 15. Get users that liked this item
+// 16. Get users that liked this item
 app.get('/listings/:listingid/likes', (req, res) => {
     console.log("Servicing GET /listings/:listing_id/likes...");
 
@@ -492,7 +514,7 @@ app.get('/listings/:listingid/likes', (req, res) => {
     })
 })
 
-// 16. Get items liked by user
+// 17. Get items liked by user
 app.get('/users/:userid/likes', (req, res) => {
     console.log("Servicing GET /users/:userid/likes...");
 
@@ -524,7 +546,7 @@ app.get('/users/:userid/likes', (req, res) => {
 
 })
 
-// 17. Like a listing
+// 18. Like a listing
 app.post('/listings/:listingid/likes', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing POST /listings/:listingid/likes...");
 
@@ -542,7 +564,7 @@ app.post('/listings/:listingid/likes', isLoggedInMiddleware, (req, res) => {
     })
 });
 
-// 18. Unlike a listing
+// 19. Unlike a listing
 app.delete('/listings/:listingid/likes', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing DELETE /listings/:listingid/likes...");
 
@@ -560,7 +582,7 @@ app.delete('/listings/:listingid/likes', isLoggedInMiddleware, (req, res) => {
     })
 });
 
-// 19. get user by username
+// 20. get user by username
 app.get('/profile/:username', (req, res) => {
     console.log("Servicing GET /user/:username...");
 
@@ -583,7 +605,7 @@ app.get('/profile/:username', (req, res) => {
     })
 });
 
-// 20. get a picture
+// 21. get a picture
 app.get('/listings/:listingid/picture', (req, res) => {
     console.log("Servicing GET /listings/:listingid/picture...");
     let id = req.params.listingid;
@@ -612,7 +634,7 @@ app.get('/listings/:listingid/picture', (req, res) => {
     })
 });
 
-// 21. Listings for Front End (Loggedin user)
+// 22. Listings for Front End (Loggedin user)
 app.get('/fe/:userid/listings', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing GET /:userid/fe/listings...");
 
@@ -654,7 +676,7 @@ app.get('/fe/:userid/listings', isLoggedInMiddleware, (req, res) => {
     })
 })
 
-// 22. Listings for Front End (Loggedout user)
+// 23. Listings for Front End (Loggedout user)
 app.get('/fe/listings', (req, res) => {
     console.log("Servicing GET /fe/listings...");
     let data = {
@@ -680,7 +702,7 @@ app.get('/fe/listings', (req, res) => {
 
 })
 
-// 23. Get listings per category
+// 24. Get listings per category
 app.get('/listings/category/:categoryid', (req, res) => {
     console.log("Servicing GET /listings/category/:categoryid...");
 
@@ -709,7 +731,7 @@ app.get('/listings/category/:categoryid', (req, res) => {
     })
 })
 
-// 24. Search listings
+// 25. Search listings
 app.get('/search/listings', (req, res) => {
     console.log("Servicing GET /search/listings...");
     let queries = {

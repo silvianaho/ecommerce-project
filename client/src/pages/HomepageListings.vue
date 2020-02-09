@@ -75,7 +75,7 @@ export default {
                 .then(lc_result => {
                   // eslint-disable-next-line no-console
                   console.log(lc_result)
-                  listing.likeCount = lc_result.data.likeCount;
+                  listing.likeCount = parseInt(lc_result.data.likeCount);
                   this.$set(
                     this.listings,
                     index,
