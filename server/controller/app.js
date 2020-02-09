@@ -11,7 +11,6 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
-const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs')
@@ -358,19 +357,51 @@ app.post('/listings/:listingid/offers', isLoggedInMiddleware, (req, res) => {
     var data = {
         offer: req.body.offer,
         fk_listing_id: req.params.listingid,
-        fk_offerer_id: req.body.fk_offerer_id
+        fk_offerer_id: req.decodedToken.userid
     }
+    let posterid = null
 
-    offers.addOffer(data, (err, result) => {
-        if (!err) {
-            var output = {
-                "offerID": result.insertId
+    listings.findListingbyID(data.fk_listing_id, (l_err, l_result) => {
+        if (!l_err) {
+            console.log(l_result);
+            posterid = l_result[0].fk_poster_id
+            console.log(posterid);
+
+            if (req.decodedToken.userid == posterid) {
+                let output = {
+                    message: "You cannot post offer to your own listing"
+                }
+                res.status(500).type("json").send(JSON.stringify(output));
+            } else {
+                offers.addOffer(data, (err, result) => {
+                    if (!err) {
+                        var output = {
+                            "offerID": result.insertId
+                        }
+                        res.status(201).type("json").send(JSON.stringify(output));
+                    } else {
+                        if (err.errno === 1452) {
+                            let output = {
+                                message: "ListingID or UserID does not exist, please provide valid values"
+                            }
+                            res.status(500).type("json").send(JSON.stringify(output));
+                        } else {
+                            res.status(500).type("json").send(JSON.stringify(err));
+                        }
+                    }
+                })
             }
-            res.status(201).type("json").send(JSON.stringify(output));
-        } else {
-            res.status(500).type("json").send(JSON.stringify(err));
+        }
+        else {
+            let output = {
+                message: "ListingID or UserID does not exist, please provide valid values"
+            }
+            res.status(500).type("json").send(JSON.stringify(output));
         }
     })
+
+
+
 });
 
 // 13. Get all Categories
@@ -428,7 +459,7 @@ app.post('/login', (req, res) => {
     })
 })
 
-// 16. Get users that liked this item
+// 15. Get users that liked this item
 app.get('/listings/:listingid/likes', (req, res) => {
     console.log("Servicing GET /listings/:listing_id/likes...");
 
@@ -436,20 +467,32 @@ app.get('/listings/:listingid/likes', (req, res) => {
 
     likes.usersWhoLikedThis(listingid, (err, result) => {
         if (!err) {
-            let output = {
-                likers: result,
-                likeCount: result.length
+            if (result == null) {
+                let output = {
+                    message: "Listing does not exist, please provide a valid listingID"
+                }
+                res.status(200).type("json").send(JSON.stringify(output));
+            } else {
+                if (result.length == 0) {
+                    let output = {
+                        message: "Nobody has liked this listing yet"
+                    }
+                    res.status(200).type("json").send(JSON.stringify(output));
+                } else {
+                    let output = {
+                        likers: result,
+                        likeCount: result.length
+                    }
+                    res.status(200).type("json").send(JSON.stringify(output));
+                }
             }
-            res.status(200).type("json").send(JSON.stringify(output));
-        }
-        else {
+        } else {
             res.status(500).type("json").send(JSON.stringify(err));
         }
     })
-
 })
 
-// 17. Get items liked by user
+// 16. Get items liked by user
 app.get('/users/:userid/likes', (req, res) => {
     console.log("Servicing GET /users/:userid/likes...");
 
@@ -457,7 +500,22 @@ app.get('/users/:userid/likes', (req, res) => {
 
     likes.listingLikedByUser(userid, (err, result) => {
         if (!err) {
-            res.status(200).type("json").send(JSON.stringify(result));
+            if (result == null) {
+                let output = {
+                    message: "User does not exist, please provide a valid userID"
+                }
+                res.status(400).type("json").send(JSON.stringify(output));
+            } else {
+                if (result.length == 0) {
+                    let output = {
+                        message: "This user has not liked any listing yet"
+                    }
+                    res.status(400).type("json").send(JSON.stringify(output));
+
+                } else {
+                    res.status(200).type("json").send(JSON.stringify(result));
+                }
+            }
         }
         else {
             res.status(500).type("json").send(JSON.stringify(err));
@@ -466,7 +524,7 @@ app.get('/users/:userid/likes', (req, res) => {
 
 })
 
-// 18. Like a listing
+// 17. Like a listing
 app.post('/listings/:listingid/likes', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing POST /listings/:listingid/likes...");
 
@@ -484,7 +542,7 @@ app.post('/listings/:listingid/likes', isLoggedInMiddleware, (req, res) => {
     })
 });
 
-// 19. Unlike a listing
+// 18. Unlike a listing
 app.delete('/listings/:listingid/likes', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing DELETE /listings/:listingid/likes...");
 
@@ -502,7 +560,7 @@ app.delete('/listings/:listingid/likes', isLoggedInMiddleware, (req, res) => {
     })
 });
 
-// 20. get user by username
+// 19. get user by username
 app.get('/profile/:username', (req, res) => {
     console.log("Servicing GET /user/:username...");
 
@@ -525,7 +583,7 @@ app.get('/profile/:username', (req, res) => {
     })
 });
 
-// 21. get a picture
+// 20. get a picture
 app.get('/listings/:listingid/picture', (req, res) => {
     console.log("Servicing GET /listings/:listingid/picture...");
     let id = req.params.listingid;
@@ -554,7 +612,7 @@ app.get('/listings/:listingid/picture', (req, res) => {
     })
 });
 
-// 22. Listings for Front End (Loggedin user)
+// 21. Listings for Front End (Loggedin user)
 app.get('/fe/:userid/listings', isLoggedInMiddleware, (req, res) => {
     console.log("Servicing GET /:userid/fe/listings...");
 
@@ -596,7 +654,7 @@ app.get('/fe/:userid/listings', isLoggedInMiddleware, (req, res) => {
     })
 })
 
-// 23. Listings for Front End (Loggedout user)
+// 22. Listings for Front End (Loggedout user)
 app.get('/fe/listings', (req, res) => {
     console.log("Servicing GET /fe/listings...");
     let data = {
@@ -622,11 +680,18 @@ app.get('/fe/listings', (req, res) => {
 
 })
 
-// 24. Get listings per category
+// 23. Get listings per category
 app.get('/listings/category/:categoryid', (req, res) => {
     console.log("Servicing GET /listings/category/:categoryid...");
 
     var categoryid = req.params.categoryid;
+    if (parseInt(categoryid) > 8) {
+        var output = {
+            error: "Category out of range. Please enter an integer between 1 and 8."
+        }
+        res.status(400).type("json").send(JSON.stringify(output));
+        return;
+    }
     categories.getListingsByCat(categoryid, (err, result) => {
         if (!err) {
             if (!result) {
@@ -644,7 +709,7 @@ app.get('/listings/category/:categoryid', (req, res) => {
     })
 })
 
-// 25. Search listings
+// 24. Search listings
 app.get('/search/listings', (req, res) => {
     console.log("Servicing GET /search/listings...");
     let queries = {
@@ -696,14 +761,7 @@ app.get('/search/listings', (req, res) => {
 
     listings.searchListing(queries, (err, result) => {
         if (!err) {
-            if (!result) {
-                var output = {
-                    "message": "Your search did not match any listings."
-                }
-                res.status(404).type("json").send(JSON.stringify(output));
-            } else {
-                res.status(200).type("json").send(JSON.stringify(result));
-            }
+            res.status(200).type("json").send(JSON.stringify(result));
         }
         else {
             res.status(500).type("json").send(JSON.stringify(err));

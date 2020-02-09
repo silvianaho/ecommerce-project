@@ -150,6 +150,10 @@ export default {
       picurl: null
     };
   },
+  beforeRouteEnter(to, from, next) {
+    const token = localStorage.getItem("usertoken");
+    return token ? next() : next("/login");
+  },
   mounted() {
     this.getCategories();
   },

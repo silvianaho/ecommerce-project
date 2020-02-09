@@ -5,6 +5,8 @@ Course: DIT/FT/1B/14
 */
 
 const db = require("./databaseConfig");
+const users = require('./users');
+const listings = require('./listings');
 
 var offersDB = {
     // 11. get all offers for a listing
@@ -37,12 +39,26 @@ var offersDB = {
         ]
         var sqlstring = 'INSERT INTO offers (offer, fk_listing_id, fk_offerer_id) VALUES (?, ?, ?)';
 
-        db.connection.query(sqlstring, values, (err, result) => {
+        listings.findListingbyID(data.fk_listing_id, (err, result) => {
             if (err) {
-                console.log(err);
-                return callback(err, null);
+                return callback(err, null)
             } else {
-                return callback(null, result);
+                console.log(result);
+                users.findUserbyID(data.fk_offerer_id, (err, result) => {
+                    if (err) {
+                        return callback(err, null)
+                    } else {
+                        console.log(result);
+                        db.connection.query(sqlstring, values, (err, result) => {
+                            if (err) {
+                                console.log(err);
+                                return callback(err, null);
+                            } else {
+                                return callback(null, result);
+                            }
+                        })
+                    }
+                })
             }
         })
     }

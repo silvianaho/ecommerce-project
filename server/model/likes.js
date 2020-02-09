@@ -5,6 +5,9 @@ Course: DIT/FT/1B/14
 */
 
 const db = require('./databaseConfig');
+const users = require('./users');
+const listings = require('./listings');
+
 
 var likesDB = {
     getLikedListings: (callback) => {
@@ -30,12 +33,23 @@ var likesDB = {
                 ls.listingsid=lk.fk_listing_id AND
                 u.userid = lk.fk_liker_id;`;
 
-        db.connection.query(sqlstring, id, (err, result) => {
+        listings.findListingbyID(id, (err, result) => {
             if (err) {
-                console.log(err);
-                return callback(err, null);
+                return callback(err, null)
             } else {
-                return callback(null, result);
+                if (result == null) {
+                    return callback(null, null)
+                } else {
+                    db.connection.query(sqlstring, id, (err, result) => {
+                        if (err) {
+                            console.log(err);
+                            return callback(err, null);
+                        } else {
+                            return callback(null, result);
+                        }
+                    })
+
+                }
             }
         })
     },
@@ -54,12 +68,23 @@ var likesDB = {
             lk.fk_liker_id = ? AND 
             ls.listingsid = lk.fk_listing_id`
 
-        db.connection.query(sqlstring, id, (err, result) => {
+        users.findUserbyID(id, (err, result) => {
             if (err) {
-                console.log(err);
-                return callback(err, null);
+                return callback(err, null)
             } else {
-                return callback(null, result);
+                if (result == null) {
+                    return callback(null, null)
+                } else {
+                    db.connection.query(sqlstring, id, (err, result) => {
+                        if (err) {
+                            console.log(err);
+                            return callback(err, null);
+                        } else {
+                            return callback(null, result);
+                        }
+                    })
+
+                }
             }
         })
     },

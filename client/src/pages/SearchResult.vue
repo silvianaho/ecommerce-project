@@ -83,7 +83,10 @@
               />
             </div>
           </div>
-          <button class="btn btn-dark" @click="searchForm.lowerlimit = 0; listings = []; search(searchForm)">Search</button>
+          <button
+            class="btn btn-dark"
+            @click="searchForm.lowerlimit = 0; listings = []; search(searchForm)"
+          >Search</button>
           <button class="btn btn-outline-dark my-3" @click="resetsearch()">Reset</button>
         </div>
       </div>
@@ -104,7 +107,7 @@
         </div>
         <button
           class="btn btn-outline-dark my-4"
-          v-if="lastListing() == false"
+          v-if="lastListing() == false && listings != null"
           @click="seeMore(searchForm)"
         >See More</button>
       </div>
@@ -150,22 +153,23 @@ export default {
         lowerlimit: 0,
         count: 12
       },
-      searchSuccess: true
+      searchSuccess: true,
+      seemore: false
     };
   },
   created() {
     this.search(this.searchForm);
     EventBus.$on("searchtitle", result => {
-      this.resetsearch()
+      this.resetsearch();
       this.searchForm.title = result[0];
       this.searchForm.userid = result[1];
     });
     EventBus.$on("searchresult", result => {
-      this.listings = []
-      if (result.length == null) {
-        this.searchSuccess = true;
+      this.listings = [];
+      if (result == null) {
+        this.searchSuccess = false;
       }
-      this.listings = result.data
+      this.listings = result.data;
       if (localStorage.userid) {
         this.listings.map((listing, index) => {
           axios
@@ -221,14 +225,17 @@ export default {
           params: searchForm
         })
         .then(result => {
-          if (result.length == null) {
-            this.searchSuccess = true;
+          if (result.data == null) {
+            this.searchSuccess = false;
           }
-
-          result.data.forEach(listing => {
-            this.listings.push(listing);
-          });
-          // this.listings = result.data
+          if (this.seemore === true) {
+            result.data.forEach(listing => {
+              this.listings.push(listing);
+            });
+            this.seemore = false;
+          } else {
+            this.listings = result.data;
+          }
           if (localStorage.userid) {
             this.listings.map((listing, index) => {
               axios
@@ -363,23 +370,22 @@ export default {
     },
     seeMore(searchForm) {
       searchForm.lowerlimit = this.listings.length;
+      this.seemore = true;
       this.search(searchForm);
     },
-    lastListing(){
-      if (this.listings[this.listings.length - 1].eol == true) {
-        return true
-      }
-      else{
-        return false
+    lastListing() {
+      if (this.listings != null && this.listings[this.listings.length - 1].eol == true) {
+        return true;
+      } else {
+        return false;
       }
     }
   },
-  watch:{
+  watch: {
     $route(to) {
       // eslint-disable-next-line no-console
-      console.log(to)
-      this.listings = []
-      // this.getUserInfo(to.params.username);
+      console.log(to);
+      this.listings = [];
     }
   }
 };
