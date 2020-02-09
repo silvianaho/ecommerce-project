@@ -17,6 +17,8 @@ import LogIn from './components/LogIn';
 // @ts-ignore
 import Profile from './pages/Profile';
 // @ts-ignore
+import Settings from './pages/Settings';
+// @ts-ignore
 import SearchResult from './pages/SearchResult';
 // @ts-ignore
 import NotFound from './components/NotFound';
@@ -65,6 +67,11 @@ const routes = [
         path: '/notfound',
         component: NotFound
     },
+    {
+        name: 'settings',
+        path: '/settings',
+        component: Settings
+    }
 ]
 
 export default

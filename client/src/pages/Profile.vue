@@ -27,7 +27,13 @@ Course : DIT/FT/1B/14
       </div>
       <!-- right side (edit profile btn, user listings, liked listings) -->
       <div class="col-9 mt-5 pt-5">
-        <button v-if="isUser" class="btn btn-dark editprofile">Edit Profile</button>
+        <router-link
+          class="text-dark text-decoration-none"
+          v-if="userinfo != undefined"
+          :to="'/settings'"
+        >
+          <button v-if="isUser" class="btn btn-dark editprofile">Edit Profile</button>
+        </router-link>
         <div class="user-tabs">
           <!-- tabs -->
           <b-tabs content-class="mt-3" fill>
@@ -183,12 +189,13 @@ export default {
     },
     getImage(listingsid) {
       return "http://localhost:3000/listings/" + listingsid + "/picture";
-    }
+    },
+
   },
   watch: {
     $route(to) {
-      this.listings = []
-      this.itemsLiked = []
+      this.listings = [];
+      this.itemsLiked = [];
       this.getUserInfo(to.params.username);
     }
   }

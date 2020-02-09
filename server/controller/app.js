@@ -132,46 +132,49 @@ app.get('/users/:userid', (req, res) => {
 });
 
 // 4. update user
-app.put('/users/:userid', isLoggedInMiddleware, (req, res) => {
-    console.log("Servicing PUT /users/:userid...");
+app.put('/users/:userid/profile', isLoggedInMiddleware, (req, res) => {
+    console.log("Servicing PUT /users/:userid/profile...");
 
     var data = {
         username: req.body.username,
         email: req.body.email,
-        password: req.body.password,
         profile_pic_url: req.body.profile_pic_url,
         userid: req.params.userid,
     };
 
-    bcrypt.hash(req.body.password, 10, (bc_err, hash) => {
-        if (!bc_err) {
-            data.password = hash;
-            users.updateUser(data, (err, result) => {
-                if (!err) {
-                    let cred = {
-                        userid: data.userid,
-                        email: req.body.email,
-                        password: hash,
-                    }
-                    users.updateCreds(cred, (pwderr, pwdresult) => {
-                        if (!pwderr) {
-                            res.status(204).type("json").send(JSON.stringify(result));
-                        }
-                        else {
-                            res.status(500).type("json").send(JSON.stringify({ err, pwderr }));
-                        }
-                    })
+    users.updateUser(data, (err, result) => {
+        if (!err) {
+            res.status(204).type("json").send(JSON.stringify(result));
+        }
+        else {
+            if (err.errno === 1062) {
+                let output = {
+                    err,
+                    error: "This Username/Email is Taken.",
                 }
-                else {
-                    if (err.errno === 1062) {
-                        res.status(422).type("json").send(JSON.stringify(err));
-                    } else {
-                        res.status(500).type("json").send(JSON.stringify(err));
-                    }
-                }
-            })
-        } else {
-            res.status(500).type("json").send(JSON.stringify(bc_err));
+                res.status(422).type("json").send(JSON.stringify(output));
+            } else {
+                res.status(500).type("json").send(JSON.stringify(err));
+            }
+        }
+    })
+
+});
+
+app.put('/users/:userid/pwd', isLoggedInMiddleware, (req, res) => {
+    console.log("Servicing PUT /users/:userid/pwd...");
+
+    var data = {
+        password: req.body.password,
+        userid: req.params.userid,
+    };
+
+    users.updatePwd(data, (err, result) => {
+        if (!err) {
+            res.status(204).type("json").send(JSON.stringify(result));
+        }
+        else {
+            res.status(500).type("json").send(JSON.stringify(err));
         }
     })
 
@@ -641,6 +644,7 @@ app.get('/listings/category/:categoryid', (req, res) => {
     })
 })
 
+// 25. Search listings
 app.get('/search/listings', (req, res) => {
     console.log("Servicing GET /search/listings...");
     let queries = {

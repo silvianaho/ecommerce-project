@@ -2,88 +2,90 @@
   <div class="container-fluid mt-4 mb-5">
     <h2 class="my-3">Result for "{{$attrs.title}}"</h2>
     <div class="row px-5">
-      <div class="card py-4 px-3 text-left">
-        <!-- categories -->
-        <div class="form-group">
-          <label class="h5 font-weight-bold ml-2" for="selectCategory">Category</label>
-          <select
-            class="form-control"
-            id="selectCategory"
-            name="category"
-            v-model="searchForm.category"
-            required
-          >
-            <option value selected>Select a category...</option>
-            <option
-              v-for="category in categories"
-              :key="category.categoriesid"
-              :value="category.categoriesid"
-            >{{category.categoriestxt}}</option>
-          </select>
-        </div>
-        <!-- condition -->
-        <div class="form-group">
-          <label class="h5 font-weight-bold ml-2" for="condition">Item Condition</label>
-          <div class="row">
-            <div v-for="condition in conditions" :key="condition.id" class="col-6">
-              <div class="custom-control custom-radio">
-                <input
-                  type="radio"
-                  :id="condition.text"
-                  :name="condition.text"
-                  :value="condition.text"
-                  v-model="searchForm.cond"
-                  class="custom-control-input"
-                />
-                <label class="custom-control-label" :for="condition.text">{{condition.text}}</label>
+      <div class="col-md-3">
+        <div class="card py-4 px-3 text-left">
+          <!-- categories -->
+          <div class="form-group">
+            <label class="h5 font-weight-bold ml-2" for="selectCategory">Category</label>
+            <select
+              class="form-control"
+              id="selectCategory"
+              name="category"
+              v-model="searchForm.category"
+              required
+            >
+              <option value selected>Select a category...</option>
+              <option
+                v-for="category in categories"
+                :key="category.categoriesid"
+                :value="category.categoriesid"
+              >{{category.categoriestxt}}</option>
+            </select>
+          </div>
+          <!-- condition -->
+          <div class="form-group">
+            <label class="h5 font-weight-bold ml-2" for="condition">Item Condition</label>
+            <div class="row">
+              <div v-for="condition in conditions" :key="condition.id" class="col-6">
+                <div class="custom-control custom-radio">
+                  <input
+                    type="radio"
+                    :id="condition.text"
+                    :name="condition.text"
+                    :value="condition.text"
+                    v-model="searchForm.cond"
+                    class="custom-control-input"
+                  />
+                  <label class="custom-control-label" :for="condition.text">{{condition.text}}</label>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <!-- minprice -->
-        <div class="form-group">
-          <label class="h5 font-weight-bold ml-2" for="minprice">Minimum Price</label>
-          <div class="input-group">
-            <div class="input-group-prepend">
-              <!-- <p><span>S$</span></p> -->
-              <span class="input-group-text">S$</span>
+          <!-- minprice -->
+          <div class="form-group">
+            <label class="h5 font-weight-bold ml-2" for="minprice">Minimum Price</label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <!-- <p><span>S$</span></p> -->
+                <span class="input-group-text">S$</span>
+              </div>
+              <input
+                type="Number"
+                class="form-control"
+                aria-label="Price"
+                name="minprice"
+                id="price"
+                placeholder="Price"
+                v-model="searchForm.minprice"
+                min="0"
+                step="0.01"
+              />
             </div>
-            <input
-              type="Number"
-              class="form-control"
-              aria-label="Price"
-              name="minprice"
-              id="price"
-              placeholder="Price"
-              v-model="searchForm.minprice"
-              min="0"
-              step="0.01"
-            />
           </div>
-        </div>
-        <!-- maxprice -->
-        <div class="form-group">
-          <label class="h5 font-weight-bold ml-2" for="maxprice">Maximum Price</label>
-          <div class="input-group">
-            <div class="input-group-prepend">
-              <!-- <p><span>S$</span></p> -->
-              <span class="input-group-text">S$</span>
+          <!-- maxprice -->
+          <div class="form-group">
+            <label class="h5 font-weight-bold ml-2" for="maxprice">Maximum Price</label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <!-- <p><span>S$</span></p> -->
+                <span class="input-group-text">S$</span>
+              </div>
+              <input
+                type="Number"
+                class="form-control"
+                aria-label="Price"
+                name="maxprice"
+                id="price"
+                placeholder="Price"
+                v-model="searchForm.maxprice"
+                min="0"
+                step="0.01"
+              />
             </div>
-            <input
-              type="Number"
-              class="form-control"
-              aria-label="Price"
-              name="maxprice"
-              id="price"
-              placeholder="Price"
-              v-model="searchForm.maxprice"
-              min="0"
-              step="0.01"
-            />
           </div>
+          <button class="btn btn-dark" @click="searchForm.lowerlimit = 0; listings = []; search(searchForm)">Search</button>
+          <button class="btn btn-outline-dark my-3" @click="resetsearch()">Reset</button>
         </div>
-        <button class="btn btn-dark" @click="search(searchForm)">Search</button>
-        <button class="btn btn-outline-dark my-3" @click="resetsearch()">Reset</button>
       </div>
       <div class="container-fluid col-md-9 border h-100 w-100">
         <div class="row py-3">
@@ -102,7 +104,7 @@
         </div>
         <button
           class="btn btn-outline-dark my-4"
-          v-if="listings.length < (((searchForm.lowerlimit/searchForm.count)+1)*searchForm.count)"
+          v-if="lastListing() == false"
           @click="seeMore(searchForm)"
         >See More</button>
       </div>
@@ -154,6 +156,7 @@ export default {
   created() {
     this.search(this.searchForm);
     EventBus.$on("searchtitle", result => {
+      this.resetsearch()
       this.searchForm.title = result[0];
       this.searchForm.userid = result[1];
     });
@@ -162,10 +165,7 @@ export default {
       if (result.length == null) {
         this.searchSuccess = true;
       }
-      result.data.forEach(listing => {
-        this.listings.push(listing);
-      });
-      // this.listings = result.data
+      this.listings = result.data
       if (localStorage.userid) {
         this.listings.map((listing, index) => {
           axios
@@ -224,6 +224,7 @@ export default {
           if (result.length == null) {
             this.searchSuccess = true;
           }
+
           result.data.forEach(listing => {
             this.listings.push(listing);
           });
@@ -363,6 +364,14 @@ export default {
     seeMore(searchForm) {
       searchForm.lowerlimit = this.listings.length;
       this.search(searchForm);
+    },
+    lastListing(){
+      if (this.listings[this.listings.length - 1].eol == true) {
+        return true
+      }
+      else{
+        return false
+      }
     }
   },
   watch:{

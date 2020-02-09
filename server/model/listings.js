@@ -180,11 +180,85 @@ var listingsDB = {
             parseInt(data.lowerlimit),
             parseInt(data.count)
         ]
+        listingsDB.allListings((err, result) => {
+            if (err) {
+                return err;
+            } else {
+                // eol = end of listings
+                let lastListing = result[result.length - 1].listingsid;
+                db.connection.query(sqlstring, values, (feErr, feResult) => {
+                    if (feErr) {
+                        return callback(feErr, null);
+                    } else {
+                        if (feResult.length == 0) {
+                            return callback(null, null);
+                        } else {
+                            feResult.forEach(listing => {
+                                if (listing.listingsid == lastListing) {
+                                    listing.eol = true;
+                                } else {
+                                    listing.eol = false;
+                                }
+                            });
+
+                            return callback(null, feResult);
+                        }
+                    }
+                })
+            }
+
+        })
+    },
+
+    allSearchResult: (queries, callback) => {
+        var sqlstring = `
+    SELECT
+        ls.listingsid
+    FROM
+        listings AS ls,
+        users AS u
+    WHERE
+        ls.title REGEXP(?) AND
+        ls.price >= ? AND
+        ls.price <= ? AND
+        ls.item_condition REGEXP(?) AND
+        ls.fk_category_id REGEXP(?) AND
+        ls.fk_poster_id != ? AND
+        ls.fk_poster_id = u.userid
+    ORDER BY 
+        ls.listingsid ASC
+        `
+
+        if (queries.title == "" || queries.title == undefined) {
+            queries.title = ".*?"
+        }
+        if (queries.cond == "" || queries.cond == undefined) {
+            queries.cond = ".*?"
+        }
+        if (queries.category == "" || queries.category == undefined) {
+            queries.category = ".*?"
+        }
+
+        let values = [
+            queries.title,
+            queries.minprice,
+            queries.maxprice,
+            queries.cond,
+            queries.category,
+            parseInt(queries.userid),
+        ]
+
         db.connection.query(sqlstring, values, (err, result) => {
             if (err) {
+                console.log(err);
+                
                 return callback(err, null);
             } else {
-                return callback(null, result);
+                if (result == null) {
+                    return callback(null, null);
+                } else {
+                    return callback(null, result);
+                }
             }
         })
     },
@@ -233,14 +307,33 @@ var listingsDB = {
             parseInt(queries.count)
         ]
 
-        db.connection.query(sqlstring, values, (err, result) => {
+        listingsDB.allSearchResult(queries, (err, result) => {            
             if (err) {
                 return callback(err, null);
             } else {
-                if (result.length == 0) {
+                if (result.length == 0) {                    
                     return callback(null, null);
                 } else {
-                    return callback(null, result);
+                    let lastListing = result[result.length - 1].listingsid
+                    
+                    db.connection.query(sqlstring, values, (smallsearchErr, smallsearchResult) => {
+                        if (smallsearchErr) {
+                            return callback(smallsearchErr, null);
+                        } else {
+                            if (smallsearchResult.length == 0) {
+                                return callback(null, null);
+                            } else {
+                                smallsearchResult.forEach(listing => {
+                                    if (listing.listingsid == lastListing) {
+                                        listing.eol = true;
+                                    } else {
+                                        listing.eol = false;
+                                    }
+                                });
+                                return callback(null, smallsearchResult);
+                            }
+                        }
+                    })
                 }
             }
         })

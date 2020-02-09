@@ -12,7 +12,7 @@
     </div>
 
     <button
-      v-if="listings.length >= (((limits.lowerlimit/limits.count)+1)*limits.count)"
+      v-if="lastListing() == false"
       class="btn btn-outline-dark my-4"
       @click="seeMore(limits)"
     >See More</button>
@@ -198,6 +198,14 @@ export default {
         "lowerlimit" + limits.lowerlimit + "\n" + JSON.stringify(limits)
       );
       this.getListings(limits);
+    },
+    lastListing(){
+      if (this.listings[this.listings.length - 1].eol == true) {
+        return true
+      }
+      else{
+        return false
+      }
     }
   }
 };

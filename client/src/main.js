@@ -23,6 +23,22 @@ Vue.component('listings-component', ListingsComponent);
 Vue.use(BootstrapVue)
 Vue.config.productionTip = false;
 
+/*
+  VUE RENDERING
+
+  Real
+  render: function (createElement) {
+    return createElement(App);
+  }
+  short
+  render: function (h) {
+    return h(App);
+  }
+  more short
+  render: h => h (App)
+  
+*/
+
 new Vue({
   render: h => h(App),
   router,

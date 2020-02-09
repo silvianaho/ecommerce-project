@@ -113,14 +113,16 @@ var usersDB = {
         var sqlstring = "UPDATE users SET username=?, email=?, profile_pic_url=? WHERE userid=?";
 
         usersDB.findUserbyID(data.userid, (err, result) => {
+            console.log(result);
+            
             if (data.username === "") {
-                data.username = result[0].username;
+                data.username = result.username;
             };
             if (data.email === "") {
-                data.email = result[0].email;
+                data.email = result.email;
             };
             if (data.profile_pic_url === "") {
-                data.profile_pic_url = result[0].profile_pic_url;
+                data.profile_pic_url = result.profile_pic_url;
             };
 
             var values = [
@@ -149,16 +151,17 @@ var usersDB = {
     updatePwd: (data, callback) => {
         var sqlstring = "UPDATE users SET password=? WHERE userid=?";
 
-        bcrypt.genSalt(saltRounds, function (err, salt) {
-            bcrypt.hash(data.password, salt, function (err, hash) {
+        bcrypt.genSalt(saltRounds, function (err_1, salt) {
+            bcrypt.hash(data.password, salt, function (err_2, hash) {
                 var values = [
                     hash,
+                    data.userid
                 ];
 
-                db.connection.query(sqlstring, values, (err, result) => {
-                    if (err) {
-                        console.log(err);
-                        return callback(err, null);
+                db.connection.query(sqlstring, values, (err_3, result) => {
+                    if (err_3) {
+                        let errors = [err_1, err_2, err_3]
+                        return callback(errors, null);
                     } else {
                         return callback(null, result);
                     }
