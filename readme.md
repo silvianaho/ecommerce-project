@@ -94,4 +94,4 @@ Second method (all images):
 |2. |Pagination in search place          |  (22 & 23)   |
 |3. |Showing Like Counts                 |     (16)     |
 |4. |Image Uploading                     |   (9 & 11)   |
-|5. |Modify Profile Info                 |   (4 & 5)  |
+|5. |Modify Profile Info                 |   (4 & 5)    |

@@ -300,7 +300,7 @@ export default {
       this.searchForm.cond = "";
       this.searchForm.category = "";
       this.searchForm.lowerlimit = 0;
-      this.searchForm.count = 12;
+      this.searchForm.count = 2;
       this.search(this.searchForm);
     },
     getCategories() {

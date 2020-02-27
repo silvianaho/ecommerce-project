@@ -759,7 +759,7 @@ app.get('/search/listings', (req, res) => {
         queries.lowerlimit = 0
     }
     if (queries.count == "" || queries.count == undefined || isNaN(parseInt(queries.count))) {
-        queries.count = 12
+        queries.count = 2
     }
 
     // check if value is valid or not
