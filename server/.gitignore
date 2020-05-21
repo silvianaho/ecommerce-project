@@ -1,3 +1,6 @@
+# Name: Silviana
+# Student ID = p1939213
+# Course : DIT/FT/1B/14
 
 # Created by https://www.gitignore.io/api/node,code,vuejs
 # Edit at https://www.gitignore.io/?templates=node,code,vuejs
@@ -8,13 +11,13 @@
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-
-### Vuejs ###
-# Recommended template: Node.gitignore
-
 dist/
 node_modules/
-npm-debug.log
-yarn-error.log
 
 # End of https://www.gitignore.io/api/node,code,vuejs
+
+### dotenv ###
+.env.development
+
+### db-dump ###
+db-dump/
